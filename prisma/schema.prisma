@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Singleton record holding the writer's pen name / author identity.
+model Author {
+  id        String   @id @default(cuid())
+  penName   String
+  bio       String?
+  avatarKey String? // unused for now, reserved
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  books Book[]
+}
+
+// A creative project: novel, comic, film plot, game, etc.
+model Book {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String   @default("Novel") // Novel | Komik | Film | Game | Lainnya
+  genre       String?
+  accent      String   @default("amber") // cover accent color key
+  status      String   @default("draft") // draft | writing | editing | done
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author      Author       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  plotNodes   PlotNode[]
+  worldEntries WorldEntry[]
+  wikiEntries  WikiEntry[]
+}
+
+// Story structure: acts, chapters, scenes, beats, notes.
+model PlotNode {
+  id        String   @id @default(cuid())
+  bookId    String
+  title     String
+  summary   String?
+  content   String?
+  kind      String   @default("chapter") // act | chapter | scene | beat | note
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+// World building entries: locations, cultures, history, magic systems, etc.
+model WorldEntry {
+  id        String   @id @default(cuid())
+  bookId    String
+  title     String
+  category  String   @default("other") // location | culture | history | magic | tech | religion | geography | lore | other
+  content   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+// Wiki entries: characters, items, factions, events, concepts, etc.
+model WikiEntry {
+  id        String   @id @default(cuid())
+  bookId    String
+  title     String
+  category  String   @default("character") // character | item | faction | location | event | concept | other
+  content   String?
+  tags      String? // comma separated
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
