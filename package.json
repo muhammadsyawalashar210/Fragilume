@@ -1,7 +1,10 @@
 {
-  "name": "nextjs_tailwind_shadcn_ts",
-  "version": "0.2.0",
+  "name": "fragilume",
+  "version": "0.1.0",
   "private": true,
+  "description": "Fragilume — Note Studio for Author or Interest",
+  "author": "Fragilume",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
@@ -10,7 +13,15 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "electron:dev": "concurrently -k \"bun run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron electron/main.cjs\"",
+    "electron:build": "bun run build && electron-builder",
+    "electron:build:win": "bun run build && electron-builder --win",
+    "electron:build:linux": "bun run build && electron-builder --linux",
+    "electron:build:mac": "bun run build && electron-builder --mac",
+    "cap:init": "cap init Fragilume com.fragilume.app --web-dir=out",
+    "cap:add:android": "cap add android",
+    "cap:sync": "cap sync"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -81,14 +92,22 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/cli": "latest",
+    "@capacitor/core": "latest",
     "@tailwindcss/postcss": "^4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "bun-types": "^1.3.4",
+    "concurrently": "latest",
+    "cross-env": "latest",
+    "electron": "latest",
+    "electron-builder": "latest",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wait-on": "latest"
   }
 }

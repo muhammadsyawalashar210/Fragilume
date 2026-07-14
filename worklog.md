@@ -83,3 +83,58 @@ Verification (Agent Browser):
 
 Stage Summary:
 - Mobile = top navbar + slide-out left drawer (closes on backdrop/nav tap). Desktop = floating rail. Settings page = profiles CRUD + theme (light/dark/system) + backup/restore (.json, defaults to OS Documents folder via File System Access API, download fallback). Multi-profile with isolated bookshelves. All verified end-to-end.
+
+---
+Task ID: 5-6
+Agent: full-stack-developer (docs + build scaffold)
+Task: Create README.md, BUILD.md, Electron scaffold, Capacitor guide, update package.json + .gitignore
+
+Work Log:
+- Read worklog.md + package.json + prisma/schema.prisma + src/lib/brand.ts + src/lib/domain.ts + src/app/page.tsx + src/components/app/settings-view.tsx (first 70 lines) to understand the app precisely.
+- Confirmed public/fragilume-logo.svg exists (referenced from README via relative path ./public/fragilume-logo.svg).
+- Created /home/z/my-project/README.md — portfolio README: centered logo + title "Fragilume — Note Studio for Author or Interest" + v0.1 badge; badges row (Next.js 16, TypeScript 5, Tailwind 4, Prisma, SQLite, MIT); Indonesian+English bilingual intro note; Features section (onboarding/multi-profile, dashboard with book CRUD + search + type filter + accents, Edit Buku with Plot/World Building/Wiki master-detail + 700ms debounced autosave, floating glass sidebar + mobile drawer, Settings with profile CRUD + theme + accent + backup/restore via File System Access API defaulting to OS Documents folder, status bar, dark/light/system theme); 5 commented-out screenshot placeholders under ./docs/screenshots/; Tech Stack table (Next.js 16, TS 5, Tailwind 4, shadcn/ui New York, Prisma+SQLite, Zustand, TanStack Query, next-themes, Framer Motion, date-fns id, lucide); Getting Started (Node 20+/Bun, install/db:push/dev/lint); Project Structure tree (prisma, public, electron, src/app, src/components/{app,ui}, src/lib, db, package.json, README, BUILD) 2 levels deep; Data & Privacy (local SQLite at db/dev.db, no cloud/telemetry); Packaging section linking to ./BUILD.md; Roadmap with mobile .apk flagged as "requires storage refactor (see BUILD.md)"; Contributing fork→branch→PR; MIT license; Credits.
+- Created /home/z/my-project/BUILD.md — honest packaging guide: (A) Electron + electron-builder for .exe/.AppImage/.dmg with step-by-step (bun run build → standalone, install dev deps, scaffold explanation, icon conversion via ImageMagick/sips/iconutil, electron:dev live reload, per-platform build commands, Prisma engine asarUnpack caveat, SQLite DATABASE_URL at app.getPath('userData') runtime snippet, Mac code signing optional). (B) Capacitor Android .apk with the critical architectural caveat (server-side Prisma/SQLite ≠ static export) and three options: Option 1 hosted (backend work), Option 2 offline-first client-storage refactor (RECOMMENDED, 1-2 days, with table mapping Profile/Book/PlotNode/WorldEntry/WikiEntry + step-by-step cap init/cap add android/cap sync/open in Android Studio), Option 3 nodejs-mobile experimental. (C) Tauri 2 brief alternative with link to tauri.app.
+- Created /home/z/my-project/electron/main.cjs — Electron main process: spawns .next/standalone/server.js on 127.0.0.1:3000 (with ELECTRON_RUN_AS_NODE), sets DATABASE_URL=file:${app.getPath('userData')/fragilume.db} in production, creates BrowserWindow 1280x800 (min 900x600) with preload.cjs + contextIsolation + sandbox, external-link handler via shell.openExternal, whenReady/window-all-closed (quit on non-mac)/activate lifecycle, retry-load on did-fail-load.
+- Created /home/z/my-project/electron/preload.cjs — minimal contextBridge exposing platform, electron/chrome/node versions, appVersion "v0.1" under window.fragilume.
+- Created /home/z/my-project/electron-builder.yml — appId com.fragilume.app, productName Fragilume, files electron/** + public/**, extraResources mapping .next/standalone → outside asar, asarUnpack for .prisma/client + @prisma/client, win/nsis (.exe), linux/AppImage+deb, mac/dmg+zip with optional code-signing config commented out; icon paths build/icon.png (win/linux) and build/icon.icns (mac) with note to convert from SVG.
+- Updated /home/z/my-project/package.json: name → "fragilume", version → "0.1.0", added description, author "Fragilume", license "MIT"; added scripts electron:dev / electron:build / electron:build:{win,linux,mac} / cap:init / cap:add:android / cap:sync; added devDependencies with "latest" placeholder: electron, electron-builder, concurrently, wait-on, cross-env, @capacitor/core, @capacitor/cli, @capacitor/android. Preserved all existing deps/scripts.
+- Updated /home/z/my-project/.gitignore: added explicit .env.local + .env.*.local (in addition to existing .env*); added electron/dist/, electron-builder-out/, dist-electron/, *.app, *.exe, *.AppImage, *.dmg (desktop); android/, ios/, out/, *.apk (mobile). Did not duplicate existing entries.
+
+Stage Summary:
+- Files created: README.md, BUILD.md, electron/main.cjs, electron/preload.cjs, electron-builder.yml.
+- Files modified: package.json (name/version/description/author/license + 8 new scripts + 8 new devDeps), .gitignore (+ desktop/mobile build artifacts).
+- No src/ files touched. No installs or builds run. README is honest about .apk architectural caveat (Capacitor requires client-storage refactor — see BUILD.md §B Option 2).
+
+---
+Task ID: 15-19
+Agent: main
+Task: Rename app to Fragilume, convert logo to SVG, add v0.1 version, accent color customization, README/BUILD docs, Electron scaffold
+
+Work Log:
+- Analyzed uploaded fragilume_logo.png (2000x2000 PNG, 5 overlapping black circles forming a cluster/constellation) via VLM.
+- Created customizable SVG logo: public/fragilume-mark.svg (monochrome, currentColor — themeable) + public/fragilume-logo.svg (full app icon: amber gradient backdrop + white mark). Copied original PNG to public/fragilume-logo-original.png for reference.
+- Created src/components/app/logo.tsx exporting LogoMark (inline currentColor SVG, sizes) and LogoBadge (full gradient icon). Replaces Feather icon everywhere.
+- Created src/lib/brand.ts: APP_NAME="Fragilume", APP_FULL_NAME="Fragilume — Note Studio for Author or Interest", APP_TAGLINE, APP_VERSION="v0.1".
+- Renamed all 9 "Writer's Studio" references → Fragilume across: layout.tsx (metadata title/description/keywords/icons), window-chrome.tsx, nav-rail.tsx (desktop rail + mobile top bar + drawer), onboarding.tsx, status-bar.tsx, settings-view.tsx, backup.ts, domain.ts, api/backup/route.ts.
+- Added v0.1 version display in: window chrome (mono font), mobile top bar, status bar (replaced "v1.0"), settings footer, onboarding footer.
+- Accent color customization: created src/lib/accent-presets.ts (8 presets: amber/rose/emerald/violet/sky/orange/teal/pink — each with light+dark oklch variants for --brand, --brand-foreground, --brand-soft, --ring, --sidebar-primary, --sidebar-ring, --chart-1, --chart-5). Created src/components/accent-provider.tsx (React context + provider that injects a <style id="fragilume-accent-vars"> with the preset CSS, persists choice to localStorage 'fragilume-accent', re-exports useAccent hook).
+- No-FOUC: built accentNoFlashScript (inline blocking script with all 8 presets' CSS inlined as JSON) rendered via next/script <Script strategy="beforeInteractive"> in root layout <body>. Reads localStorage + injects <style> before paint so there's no amber→chosen flash on reload.
+- Added AccentSection to settings-view.tsx: 4-col (mobile) / 8-col (desktop) grid of color swatches with ring + label, active state, toast confirmation. Positioned between Theme and Backup sections.
+- Wrapped app in <AccentProvider> inside <ThemeProvider> in layout.tsx. Updated ESLint ignores to exclude electron/, mini-services/, android/, ios/, docs/.
+- Subagent (Task 5-6) created: README.md (8KB, centered SVG logo, v0.1 + tech badges, bilingual intro, full features, tech stack table, getting started, project structure, data privacy, packaging link, MIT license), BUILD.md (12.8KB, Electron+electron-builder for .exe/.AppImage/.dmg with Prisma engine asarUnpack + SQLite userData path snippet + Mac code-signing note; Capacitor Android .apk with honest 3-option architectural caveat; Tauri 2 alternative), electron/main.cjs + preload.cjs (spawns Next standalone server, BrowserWindow 1280x800), electron-builder.yml (win/nsis, linux/AppImage+deb, mac/dmg+zip). Updated package.json: name→fragilume, version→0.1.0, +description/author/license, +8 electron/cap scripts, +8 devDeps as "latest" placeholder. Updated .gitignore with desktop+mobile artifacts.
+
+Verification (Agent Browser):
+- Page title: "Fragilume — Note Studio for Author or Interest" ✓
+- Window chrome: "Fragilume\nv0.1\n· Tania Rengganis" ✓
+- Status bar: "Tania Rengganis · Dashboard · Tersimpan lokal · Fragilume v0.1" ✓
+- Brand color (dark default): oklch(0.78 0.15 63) [amber] ✓
+- Settings: AccentSection shows 8 swatches (Amber/Rose/Emerald/Violet/Sky/Orange/Teal/Pink) ✓
+- Clicked Violet → brand changed to oklch(0.78 0.16 300), ring to oklch(0.78 0.15 300), localStorage 'fragilume-accent'='violet', style tag injected ✓
+- Reloaded → accent persisted (no-FOUC script applied pre-paint) ✓
+- Switched to light theme (Terang) → htmlClass='light', brand=oklch(0.72 0.17 300) [violet light variant, lower L], brandSoft=oklch(0.95 0.04 300) [light tint] — confirms light/dark variants both apply correctly ✓
+- Restored defaults: dark + amber ✓
+- No page errors, no console errors (only React DevTools + HMR logs) ✓
+- Lint: 0 errors, 0 warnings (electron/ .cjs files excluded as intentional CommonJS) ✓
+
+Stage Summary:
+- App renamed to "Fragilume — Note Studio for Author or Interest" v0.1 across all surfaces. Logo converted from PNG to customizable SVG (currentColor mark + gradient badge). Accent color customization (8 presets, light/dark variants, persisted, no-FOUC). README.md + BUILD.md + Electron scaffold + Capacitor guide created for GitHub portfolio + .exe/.AppImage/macOS/.apk packaging. All verified end-to-end in browser.

@@ -1,7 +1,9 @@
 "use client";
 
-import { Circle, HardDrive, Feather } from "lucide-react";
+import { Circle, HardDrive } from "lucide-react";
 import { useAppStore, type AppView } from "@/lib/store";
+import { LogoMark } from "@/components/app/logo";
+import { APP_NAME, APP_VERSION } from "@/lib/brand";
 
 const VIEW_LABEL: Record<AppView, string> = {
   dashboard: "Dashboard",
@@ -20,7 +22,7 @@ export function StatusBar() {
     <footer className="h-7 shrink-0 w-full flex items-center justify-between px-3 text-[11px] text-muted-foreground border-t border-border/60 bg-background/80 backdrop-blur">
       <div className="flex items-center gap-3 min-w-0">
         <span className="inline-flex items-center gap-1.5">
-          <Feather className="h-3 w-3 text-brand" />
+          <LogoMark size={12} className="text-brand" />
           <span className="font-medium text-foreground/80 truncate max-w-[120px]">
             {activeProfile?.penName ?? "Tanpa profil"}
           </span>
@@ -42,7 +44,7 @@ export function StatusBar() {
         <span className="opacity-40">·</span>
         <span className="inline-flex items-center gap-1">
           <HardDrive className="h-3 w-3" />
-          Writer&apos;s Studio v1.0
+          {APP_NAME} {APP_VERSION}
         </span>
       </div>
     </footer>

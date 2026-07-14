@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AccentProvider } from "@/components/accent-provider";
+import { accentNoFlashScript } from "@/lib/accent-presets";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,20 +18,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Writer's Studio — Studio Penulis Kreatif",
+  title: "Fragilume — Note Studio for Author or Interest",
   description:
-    "Aplikasi desktop untuk penulis novel, komik, plot film, dan game. Atur buku, plot, world building, dan wiki dalam satu studio.",
+    "Aplikasi studio catatan untuk penulis novel, komik, plot film, dan game. Atur buku, plot, world building, dan wiki dalam satu studio.",
   keywords: [
-    "writer studio",
+    "fragilume",
+    "note studio",
     "penulis novel",
     "komik",
     "plot film",
     "game writing",
     "world building",
   ],
-  authors: [{ name: "Writer's Studio" }],
+  authors: [{ name: "Fragilume" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/fragilume-logo.svg",
+    apple: "/fragilume-logo.svg",
   },
 };
 
@@ -42,14 +47,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        <Script
+          id="fragilume-accent-noflash"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: accentNoFlashScript }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <AccentProvider>
+            {children}
+            <Toaster />
+          </AccentProvider>
         </ThemeProvider>
       </body>
     </html>

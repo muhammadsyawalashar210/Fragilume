@@ -1,4 +1,4 @@
-// Shared domain constants for the Writer's Studio app.
+// Shared domain constants for the Fragilume app.
 
 export const BOOK_TYPES = [
   "Novel",

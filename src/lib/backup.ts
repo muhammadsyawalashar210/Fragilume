@@ -14,7 +14,7 @@ function pickerOpts() {
   return {
     types: [
       {
-        description: "Writer's Studio Backup",
+        description: "Fragilume Backup",
         accept: { "application/json": [".json"] },
       },
     ],
@@ -73,7 +73,7 @@ export async function exportBackup(): Promise<ExportResult> {
   }
 
   const date = new Date().toISOString().slice(0, 10);
-  const filename = `writer-studio-backup-${date}.json`;
+  const filename = `fragilume-backup-${date}.json`;
   const w = window as FSWindow;
 
   if (typeof w.showSaveFilePicker === "function") {

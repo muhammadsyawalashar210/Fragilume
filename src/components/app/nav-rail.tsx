@@ -3,7 +3,6 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Feather,
   LayoutDashboard,
   BookOpen,
   ChevronRight,
@@ -21,6 +20,8 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAppStore, type AppView } from "@/lib/store";
+import { LogoMark } from "@/components/app/logo";
+import { APP_NAME, APP_VERSION } from "@/lib/brand";
 
 type NavLeaf = {
   view: AppView;
@@ -78,11 +79,11 @@ function NavContent({
         {/* Brand */}
         <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border/60 shrink-0">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-brand-foreground">
-            <Feather className="h-4 w-4" />
+            <LogoMark size={18} />
           </div>
           <div className="leading-tight">
             <div className="text-sm font-semibold tracking-tight">
-              Writer&apos;s Studio
+              {APP_NAME}
             </div>
             <div className="text-[10px] text-muted-foreground">
               {activeProfile?.penName ?? "Tanpa profil"}
@@ -151,7 +152,7 @@ function NavContent({
     <TooltipProvider delayDuration={200}>
       <div className="flex flex-col items-center gap-1.5 h-full">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm mb-1">
-          <Feather className="h-5 w-5" />
+          <LogoMark size={22} />
         </div>
         <div className="h-px w-8 bg-border/70 my-0.5" />
 
@@ -267,12 +268,15 @@ export function MobileTopBar() {
         onClick={() => setMobileNavOpen(true)}
         className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-foreground/80 hover:text-foreground hover:bg-accent transition-colors"
       >
-        <Feather className="h-5 w-5" />
+        <LogoMark size={20} />
       </button>
 
       <div className="flex items-center gap-2">
         <span className="text-[13px] font-semibold tracking-tight">
-          Writer&apos;s Studio
+          {APP_NAME}
+        </span>
+        <span className="text-[9px] text-muted-foreground/70 font-mono">
+          {APP_VERSION}
         </span>
         {activeProfile?.penName ? (
           <span className="hidden xs:inline text-[11px] text-muted-foreground">

@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Feather, ArrowRight, Sparkles, PenLine } from "lucide-react";
+import { ArrowRight, Sparkles, PenLine } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAppStore, readStoredActiveProfile } from "@/lib/store";
+import { LogoBadge } from "@/components/app/logo";
+import { APP_NAME, APP_FULL_NAME, APP_TAGLINE, APP_VERSION } from "@/lib/brand";
 
 export function Onboarding() {
   const [penName, setPenName] = React.useState("");
@@ -80,15 +82,13 @@ export function Onboarding() {
 
           <div className="p-7 sm:p-10">
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-lg shadow-brand/20">
-                <Feather className="h-6 w-6" />
-              </div>
+              <LogoBadge size={56} className="shrink-0" />
               <div>
                 <h1 className="text-xl font-semibold tracking-tight">
-                  Writer&apos;s Studio
+                  {APP_NAME}
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  Studio untuk penulis novel, komik, film & game
+                  {APP_TAGLINE}
                 </p>
               </div>
             </div>
@@ -158,8 +158,8 @@ export function Onboarding() {
               </Button>
 
               <p className="text-[11px] text-muted-foreground text-center pt-1">
-                Data disimpan secara lokal di perangkat ini. Backup tersedia di
-                Pengaturan.
+                {APP_FULL_NAME} · {APP_VERSION} — data disimpan secara lokal
+                di perangkat ini. Backup tersedia di Pengaturan.
               </p>
             </form>
           </div>

@@ -1,0 +1,32 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fragilume logo">
+  <!--
+    Fragilume — full app icon
+    Rounded-square backdrop with a warm amber gradient, plus the
+    five-circle mark in the foreground. The mark uses #FFFEFB so it
+    reads on both light and dark backdrops; replace the stop colors
+    below to re-skin the icon.
+  -->
+  <defs>
+    <linearGradient id="fragilume-bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B" />
+      <stop offset="1" stop-color="#EA580C" />
+    </linearGradient>
+    <linearGradient id="fragilume-bg-soft" x1="0" y1="0" x2="0" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.18" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Backdrop -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#fragilume-bg)" />
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#fragilume-bg-soft)" />
+
+  <!-- Mark: five overlapping circles (constellation of notes) -->
+  <g fill="#FFFEFB">
+    <circle cx="256" cy="360" r="104" />
+    <circle cx="256" cy="256" r="78" />
+    <circle cx="256" cy="152" r="62" />
+    <circle cx="330" cy="288" r="31" />
+    <circle cx="358" cy="184" r="42" />
+  </g>
+</svg>

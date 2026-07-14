@@ -1,0 +1,68 @@
+# electron-builder config for Fragilume.
+# Docs: https://www.electron.build/configuration
+# See ./BUILD.md for full packaging instructions and caveats.
+
+appId: com.fragilume.app
+productName: Fragilume
+copyright: Copyright © Fragilume
+
+# The Next.js standalone output is the entry point. electron/main.cjs spawns it.
+directories:
+  output: electron-builder-out
+  buildResources: build
+
+# Ship the standalone server, electron scripts, and public assets.
+# .next/standalone is produced by `bun run build` (see package.json).
+files:
+  - electron/**
+  - public/**
+
+# extraResources places the heavy Next.js standalone tree OUTSIDE the asar,
+# so the spawned Node process can read server.js + node_modules.
+extraResources:
+  - from: .next/standalone
+    to: .next/standalone
+    filter: ["**/*"]
+
+# Prisma's native query engine must be unpacked from the asar or it won't load.
+asarUnpack:
+  - "**/.prisma/client/**"
+  - "**/@prisma/client/**"
+
+# Per-platform targets -------------------------------------------------------
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.png
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Fragilume
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Office
+  icon: build/icon.png
+  maintainer: Fragilume
+
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+  icon: build/icon.icns
+  # Code signing + notarization (optional — fill in to distribute outside your machine).
+  # identity: "Developer ID Application: Your Name (TEAMID)"
+  # notarize:
+  #   teamId: "TEAMID"
+  # hardenedRuntime: true
+  # gatekeeperAssess: false

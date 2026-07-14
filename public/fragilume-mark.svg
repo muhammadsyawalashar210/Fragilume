@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fragilume mark">
+  <!--
+    Fragilume — mark
+    A cluster of five overlapping circles: a constellation of notes / ideas.
+    Uses currentColor so it inherits the surrounding text color
+    (black on light, white on dark). Fully themeable & recolorable.
+  -->
+  <g fill="currentColor">
+    <circle cx="256" cy="360" r="104" />
+    <circle cx="256" cy="256" r="78" />
+    <circle cx="256" cy="152" r="62" />
+    <circle cx="330" cy="288" r="31" />
+    <circle cx="358" cy="184" r="42" />
+  </g>
+</svg>

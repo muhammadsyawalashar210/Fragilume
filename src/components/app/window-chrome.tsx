@@ -1,7 +1,9 @@
 "use client";
 
-import { Feather, Minus, Square, X } from "lucide-react";
+import { Minus, Square, X } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { LogoMark } from "@/components/app/logo";
+import { APP_NAME, APP_VERSION } from "@/lib/brand";
 
 export function WindowChrome() {
   const activeProfile = useAppStore((s) => s.activeProfile);
@@ -11,11 +13,14 @@ export function WindowChrome() {
       {/* Left: app identity */}
       <div className="flex items-center gap-2.5">
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-brand text-brand-foreground shadow-sm">
-          <Feather className="h-4 w-4" />
+          <LogoMark size={16} />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-[13px] font-semibold tracking-tight">
-            Writer&apos;s Studio
+            {APP_NAME}
+          </span>
+          <span className="text-[10px] text-muted-foreground/70 font-mono">
+            {APP_VERSION}
           </span>
           {activeProfile?.penName ? (
             <span className="text-[11px] text-muted-foreground">

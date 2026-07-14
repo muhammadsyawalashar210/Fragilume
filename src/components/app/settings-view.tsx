@@ -18,6 +18,7 @@ import {
   Info,
   HardDriveDownload,
   FileJson,
+  Palette,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,13 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import { exportBackup, importBackup } from "@/lib/backup";
 import type { ProfileT } from "@/lib/types";
+import { APP_FULL_NAME, APP_VERSION } from "@/lib/brand";
+import {
+  ACCENT_ORDER,
+  ACCENT_LABEL,
+  ACCENT_SWATCH,
+} from "@/lib/accent-presets";
+import { useAccent } from "@/components/accent-provider";
 import { ProfileFormDialog } from "./dialogs/profile-form-dialog";
 
 export function SettingsView() {
@@ -57,9 +65,10 @@ export function SettingsView() {
         <SettingsHeader />
         <ProfilesSection />
         <ThemeSection />
+        <AccentSection />
         <BackupSection />
         <p className="text-center text-[11px] text-muted-foreground pt-2 pb-4">
-          Writer&apos;s Studio · data tersimpan lokal di perangkat ini
+          {APP_FULL_NAME} · {APP_VERSION} — data tersimpan lokal di perangkat ini
         </p>
       </div>
     </div>
@@ -360,6 +369,83 @@ function ThemeSection() {
             );
           })}
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ----------------- Accent color ----------------- */
+
+function AccentSection() {
+  const { accent, setAccent } = useAccent();
+  const { toast } = useToast();
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-soft text-brand">
+            <Palette className="h-[18px] w-[18px]" />
+          </div>
+          <div>
+            <CardTitle className="text-base">Warna Aksen</CardTitle>
+            <CardDescription className="text-xs">
+              Personalisasi warna utama studio Anda.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5">
+          {ACCENT_ORDER.map((key) => {
+            const active = accent === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setAccent(key);
+                  toast({
+                    title: "Aksen diperbarui",
+                    description: `Warna utama: ${ACCENT_LABEL[key]}`,
+                  });
+                }}
+                aria-label={ACCENT_LABEL[key]}
+                aria-pressed={active}
+                className={cn(
+                  "group flex flex-col items-center gap-1.5 rounded-xl border p-2.5 transition-all",
+                  active
+                    ? "border-brand bg-brand-soft"
+                    : "border-border/60 hover:bg-accent/50",
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-7 w-7 rounded-full ring-2 ring-offset-2 ring-offset-background transition-transform",
+                    ACCENT_SWATCH[key],
+                    active
+                      ? "ring-foreground/30 scale-110"
+                      : "ring-transparent group-hover:ring-foreground/15",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-[10px] font-medium",
+                    active
+                      ? "text-foreground"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                >
+                  {ACCENT_LABEL[key]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+          Aksen diterapkan ke seluruh studio: sidebar, tombol utama, indikator
+          aktif, dan fokus ring. Pilihan disimpan di perangkat ini.
+        </p>
       </CardContent>
     </Card>
   );

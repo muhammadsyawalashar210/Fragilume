@@ -19,7 +19,7 @@ export async function GET() {
 
   const payload = {
     version: 1,
-    app: "Writer's Studio",
+    app: "Fragilume",
     exportedAt: new Date().toISOString(),
     profiles,
     books,
