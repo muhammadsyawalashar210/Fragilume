@@ -56,3 +56,30 @@ Work Log:
 
 Stage Summary:
 - All golden-path flows verified end-to-end in the browser: onboarding → dashboard → create/edit/rename/delete books → per-book Plot/World Building/Wiki editors with autosave. App is interactive, responsive, theme-aware, and error-free.
+
+---
+Task ID: 9-14
+Agent: main
+Task: Multi-profile + mobile drawer nav + Settings (profiles/theme/backup-restore) + cleaner layout
+
+Work Log:
+- Schema: renamed Author→Profile, Book.authorId→profileId (force-reset DB, regenerated Prisma client). Restarted dev server to clear stale module cache.
+- API: /api/profiles (GET list w/ book counts, POST create); /api/profiles/[id] (PATCH, DELETE cascade); /api/books now filters by ?profileId and requires profileId on create; /api/backup (GET full JSON dump of profiles+books+entries); /api/restore (POST — wipes + re-inserts from payload, validates).
+- Store: added profiles[], activeProfileId/activeProfile (persisted to localStorage 'ws-active-profile'), view now includes 'settings', mobileNavOpen state.
+- Nav refactor (nav-rail.tsx): shared NavContent(showLabels) reused by (a) desktop FloatingSidebar (icon-only floating pill, hidden md:block) and (b) MobileTopBar (hamburger + app name + settings gear, md:hidden) + MobileNavDrawer (slide-out from left with backdrop, closes on nav tap or backdrop, body-scroll lock). Added Settings (gear) nav item. Edit Buku subtree shows "pilih buku" hint when no book selected.
+- SettingsView: three cards — Profiles (list with active badge, Activate/Edit/Delete, add via ProfileFormDialog), Tampilan (Terang/Gelap/Sistem via next-themes, enableSystem), Backup & Restore (Ekspor via File System Access API showSaveFilePicker startIn:'documents' with download fallback; Impor via showOpenFilePicker; info box explaining .json format + Documents default).
+- ThemeProvider: enableSystem=true. Removed standalone theme-toggle (theme now controlled in Settings).
+- Onboarding/Dashboard/StatusBar updated for active profile; Dashboard keyed by activeProfileId so switching profile refetches books.
+- Backup client (lib/backup.ts): exportBackup/importBackup with FS Access API + input fallback, AbortError treated as silent cancel.
+
+Verification (Agent Browser):
+- Onboarding → created profile "Tania Rengganis" → dashboard.
+- Settings: added 2nd profile "K. Nara"; activated it → dashboard showed empty separate bookshelf (profiles isolated ✓).
+- Backup API returns full JSON (2 profiles). Restore API tested with modified backup (added book) → 200, book appeared in correct profile's shelf ✓.
+- Theme: dark→light class switch verified on <html> ✓.
+- Mobile (390x844): top bar (hamburger+gear), floating sidebar hidden; drawer slides in with labeled items + backdrop; tapping a nav item closes drawer + navigates ✓. Footer pinned to viewport bottom on mobile (footerBottom===vh) ✓.
+- Desktop (1280): floating rail restored, no hamburger ✓.
+- No runtime/console errors. Lint clean (0/0).
+
+Stage Summary:
+- Mobile = top navbar + slide-out left drawer (closes on backdrop/nav tap). Desktop = floating rail. Settings page = profiles CRUD + theme (light/dark/system) + backup/restore (.json, defaults to OS Documents folder via File System Access API, download fallback). Multi-profile with isolated bookshelves. All verified end-to-end.

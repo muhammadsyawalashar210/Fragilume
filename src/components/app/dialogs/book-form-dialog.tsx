@@ -32,6 +32,7 @@ import {
   type BookType,
 } from "@/lib/domain";
 import { ACCENT_DOT } from "@/lib/accent";
+import { useAppStore } from "@/lib/store";
 
 type BookPayload = {
   title: string;
@@ -81,6 +82,7 @@ export function BookFormDialog({
   );
   const [loading, setLoading] = React.useState(false);
   const { toast } = useToast();
+  const activeProfileId = useAppStore((s) => s.activeProfileId);
 
   // Reset fields whenever the dialog opens.
   React.useEffect(() => {
@@ -107,7 +109,10 @@ export function BookFormDialog({
     }
     setLoading(true);
     try {
-      const body = {
+      if (mode === "create" && !activeProfileId) {
+        throw new Error("Profil aktif tidak ditemukan.");
+      }
+      const body: Record<string, unknown> = {
         title: t,
         type,
         genre: genre.trim() || undefined,
@@ -115,6 +120,7 @@ export function BookFormDialog({
         accent,
         status,
       };
+      if (mode === "create") body.profileId = activeProfileId;
       const url =
         mode === "create" ? "/api/books" : `/api/books/${bookId}`;
       const method = mode === "create" ? "POST" : "PATCH";

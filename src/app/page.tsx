@@ -1,34 +1,49 @@
 "use client";
 
 import * as React from "react";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, readStoredActiveProfile } from "@/lib/store";
 import { WindowChrome } from "@/components/app/window-chrome";
-import { FloatingSidebar } from "@/components/app/floating-sidebar";
+import {
+  FloatingSidebar,
+  MobileTopBar,
+  MobileNavDrawer,
+} from "@/components/app/nav-rail";
 import { Onboarding } from "@/components/app/onboarding";
 import { Dashboard } from "@/components/app/dashboard";
 import { BookEditor } from "@/components/app/book-editor";
+import { SettingsView } from "@/components/app/settings-view";
 import { StatusBar } from "@/components/app/status-bar";
+import type { ProfileT } from "@/lib/types";
 
 export default function Home() {
-  const author = useAppStore((s) => s.author);
-  const setAuthor = useAppStore((s) => s.setAuthor);
+  const profiles = useAppStore((s) => s.profiles);
+  const setProfiles = useAppStore((s) => s.setProfiles);
+  const setActiveProfileId = useAppStore((s) => s.setActiveProfileId);
+  const activeProfileId = useAppStore((s) => s.activeProfileId);
   const view = useAppStore((s) => s.view);
   const [checking, setChecking] = React.useState(true);
 
-  // First-run detection: is there an author yet?
+  // First-run detection: are there any profiles yet?
   React.useEffect(() => {
     let active = true;
-    fetch("/api/author", { cache: "no-store" })
+    fetch("/api/profiles", { cache: "no-store" })
       .then((r) => r.json())
-      .then(({ author }) => {
-        if (active && author) setAuthor(author);
+      .then(({ profiles }: { profiles: ProfileT[] }) => {
+        if (!active) return;
+        setProfiles(profiles);
+        if (profiles.length > 0) {
+          const stored = readStoredActiveProfile();
+          const initial =
+            profiles.find((p) => p.id === stored) ?? profiles[0];
+          setActiveProfileId(initial.id);
+        }
       })
       .catch(() => {})
       .finally(() => active && setChecking(false));
     return () => {
       active = false;
     };
-  }, [setAuthor]);
+  }, [setProfiles, setActiveProfileId]);
 
   if (checking) {
     return (
@@ -41,18 +56,26 @@ export default function Home() {
     );
   }
 
-  // First run: ask for pen name.
-  if (!author) {
+  // First run: no profiles yet → ask for pen name.
+  if (profiles.length === 0) {
     return <Onboarding />;
   }
 
   return (
     <div className="app-bg h-screen flex flex-col overflow-hidden">
       <WindowChrome />
+      <MobileTopBar />
       <div className="flex-1 min-h-0 relative">
         <FloatingSidebar />
-        <main className="h-full pl-[76px] sm:pl-[88px] pr-0">
-          {view === "dashboard" ? <Dashboard /> : <BookEditor />}
+        <MobileNavDrawer />
+        <main className="h-full md:pl-[88px]">
+          {view === "dashboard" && (
+            <Dashboard key={activeProfileId ?? "none"} />
+          )}
+          {view === "settings" && <SettingsView />}
+          {(view === "plot" || view === "world" || view === "wiki") && (
+            <BookEditor />
+          )}
         </main>
       </div>
       <StatusBar />

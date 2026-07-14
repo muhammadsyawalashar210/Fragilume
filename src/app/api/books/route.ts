@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { BOOK_ACCENTS, BOOK_STATUSES, BOOK_TYPES } from "@/lib/domain";
 
-// List all books (newest first).
-export async function GET() {
+// List books. When `profileId` query is provided, filter to that profile.
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const profileId = searchParams.get("profileId");
+
   const books = await db.book.findMany({
+    where: profileId ? { profileId } : undefined,
     orderBy: { updatedAt: "desc" },
     include: {
       _count: {
@@ -25,13 +29,17 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-
-  const author = await db.author.findFirst();
-  if (!author) {
+  const profileId = typeof body?.profileId === "string" ? body.profileId : "";
+  if (!profileId) {
     return NextResponse.json(
-      { error: "Author belum diatur. Silakan daftarkan nama pena terlebih dahulu." },
+      { error: "Profil diperlukan untuk membuat buku." },
       { status: 400 }
     );
+  }
+
+  const profile = await db.profile.findUnique({ where: { id: profileId } });
+  if (!profile) {
+    return NextResponse.json({ error: "Profil tidak ditemukan." }, { status: 400 });
   }
 
   const type = BOOK_TYPES.includes(body?.type) ? body.type : "Novel";
@@ -50,7 +58,7 @@ export async function POST(req: NextRequest) {
       genre,
       accent,
       status,
-      authorId: author.id,
+      profileId,
     },
   });
   return NextResponse.json({ book }, { status: 201 });

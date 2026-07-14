@@ -61,12 +61,21 @@ export function Dashboard() {
   const [deleteTarget, setDeleteTarget] = React.useState<BookWithCounts | null>(null);
 
   const { toast } = useToast();
-  const author = useAppStore((s) => s.author);
+  const activeProfile = useAppStore((s) => s.activeProfile);
+  const activeProfileId = useAppStore((s) => s.activeProfileId);
   const openEditor = useAppStore((s) => s.openEditor);
 
   const loadBooks = React.useCallback(async () => {
+    if (!activeProfileId) {
+      setBooks([]);
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await fetch("/api/books", { cache: "no-store" });
+      const res = await fetch(
+        `/api/books?profileId=${encodeURIComponent(activeProfileId)}`,
+        { cache: "no-store" }
+      );
       if (!res.ok) throw new Error("Gagal memuat buku.");
       const { books } = (await res.json()) as { books: BookWithCounts[] };
       setBooks(books);
@@ -79,9 +88,10 @@ export function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, activeProfileId]);
 
   React.useEffect(() => {
+    setLoading(true);
     loadBooks();
   }, [loadBooks]);
 
@@ -127,7 +137,7 @@ export function Dashboard() {
               DASHBOARD
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-              Selamat datang, {author?.penName?.split(" ")[0] ?? "Penulis"}
+              Selamat datang, {activeProfile?.penName?.split(" ")[0] ?? "Penulis"}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Kelola semua karya Anda di satu rak. Buat, atur, edit, dan hapus

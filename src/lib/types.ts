@@ -1,5 +1,14 @@
 // Lightweight shared types for the API payloads (decoupled from Prisma internals).
 
+export type ProfileT = {
+  id: string;
+  penName: string;
+  bio: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { books: number };
+};
+
 export type BookWithCounts = {
   id: string;
   title: string;
@@ -8,7 +17,7 @@ export type BookWithCounts = {
   genre: string | null;
   accent: string;
   status: string;
-  authorId: string;
+  profileId: string;
   createdAt: string;
   updatedAt: string;
   _count?: {

@@ -10,19 +10,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Singleton record holding the writer's pen name / author identity.
-model Author {
+// A writer identity / pen name. Multiple profiles are supported; each profile
+// owns its own set of books. The active profile is chosen client-side.
+model Profile {
   id        String   @id @default(cuid())
   penName   String
   bio       String?
-  avatarKey String? // unused for now, reserved
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   books Book[]
 }
 
-// A creative project: novel, comic, film plot, game, etc.
+// A creative project: novel, komik, film plot, game, etc.
 model Book {
   id          String   @id @default(cuid())
   title       String
@@ -31,12 +31,12 @@ model Book {
   genre       String?
   accent      String   @default("amber") // cover accent color key
   status      String   @default("draft") // draft | writing | editing | done
-  authorId    String
+  profileId   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  author      Author       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  plotNodes   PlotNode[]
+  profile      Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  plotNodes    PlotNode[]
   worldEntries WorldEntry[]
   wikiEntries  WikiEntry[]
 }
@@ -61,7 +61,7 @@ model WorldEntry {
   id        String   @id @default(cuid())
   bookId    String
   title     String
-  category  String   @default("other") // location | culture | history | magic | tech | religion | geography | lore | other
+  category  String   @default("other")
   content   String?
   order     Int      @default(0)
   createdAt DateTime @default(now())
@@ -75,7 +75,7 @@ model WikiEntry {
   id        String   @id @default(cuid())
   bookId    String
   title     String
-  category  String   @default("character") // character | item | faction | location | event | concept | other
+  category  String   @default("character")
   content   String?
   tags      String? // comma separated
   order     Int      @default(0)

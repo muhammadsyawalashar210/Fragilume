@@ -8,10 +8,11 @@ const VIEW_LABEL: Record<AppView, string> = {
   plot: "Editor Plot",
   world: "Editor World Building",
   wiki: "Editor Wiki",
+  settings: "Pengaturan",
 };
 
 export function StatusBar() {
-  const author = useAppStore((s) => s.author);
+  const activeProfile = useAppStore((s) => s.activeProfile);
   const view = useAppStore((s) => s.view);
   const bookTitle = useAppStore((s) => s.selectedBookTitle);
 
@@ -20,13 +21,13 @@ export function StatusBar() {
       <div className="flex items-center gap-3 min-w-0">
         <span className="inline-flex items-center gap-1.5">
           <Feather className="h-3 w-3 text-brand" />
-          <span className="font-medium text-foreground/80">
-            {author?.penName ?? "Tanpa nama"}
+          <span className="font-medium text-foreground/80 truncate max-w-[120px]">
+            {activeProfile?.penName ?? "Tanpa profil"}
           </span>
         </span>
         <span className="opacity-40">·</span>
         <span className="truncate">{VIEW_LABEL[view]}</span>
-        {bookTitle && view !== "dashboard" ? (
+        {bookTitle && view !== "dashboard" && view !== "settings" ? (
           <>
             <span className="opacity-40">/</span>
             <span className="truncate text-foreground/70">{bookTitle}</span>

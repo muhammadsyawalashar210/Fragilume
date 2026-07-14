@@ -7,14 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, readStoredActiveProfile } from "@/lib/store";
 
 export function Onboarding() {
   const [penName, setPenName] = React.useState("");
   const [bio, setBio] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const { toast } = useToast();
-  const setAuthor = useAppStore((s) => s.setAuthor);
+  const setProfiles = useAppStore((s) => s.setProfiles);
+  const setActiveProfileId = useAppStore((s) => s.setActiveProfileId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,19 +30,30 @@ export function Onboarding() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/author", {
+      const res = await fetch("/api/profiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ penName: name, bio: bio.trim() || undefined }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Gagal menyimpan nama pena.");
+        throw new Error(data?.error || "Gagal menyimpan profil.");
       }
-      const { author } = await res.json();
-      setAuthor(author);
+      const { profile } = await res.json();
+      // refresh profile list
+      const listRes = await fetch("/api/profiles", { cache: "no-store" });
+      const { profiles } = await listRes.json();
+      setProfiles(profiles);
+      setActiveProfileId(profile.id);
+      // persist active
+      try {
+        localStorage.setItem("ws-active-profile", profile.id);
+      } catch {
+        /* ignore */
+      }
+      void readStoredActiveProfile;
       toast({
-        title: `Selamat datang, ${author.penName}!`,
+        title: `Selamat datang, ${profile.penName}!`,
         description: "Studio Anda siap digunakan.",
       });
     } catch (err) {
@@ -64,7 +76,6 @@ export function Onboarding() {
         className="w-full max-w-xl"
       >
         <div className="relative rounded-3xl border border-border/60 bg-card/90 glass shadow-2xl shadow-black/10 dark:shadow-black/40 overflow-hidden">
-          {/* Top accent strip */}
           <div className="h-1.5 w-full bg-gradient-to-r from-brand via-amber-400 to-brand" />
 
           <div className="p-7 sm:p-10">
@@ -84,15 +95,16 @@ export function Onboarding() {
 
             <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft text-foreground/80 px-3 py-1 text-[11px] font-medium mb-5">
               <Sparkles className="h-3 w-3 text-brand" />
-              Pertama kali di sini — mari atur identitas Anda
+              Pertama kali di sini — mari atur profil Anda
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight leading-tight">
               Siapa nama pena Anda?
             </h2>
             <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              Nama pena ini akan menjadi tanda tangan Anda di setiap karya di
-              dalam studio. Anda bisa mengubahnya nanti.
+              Nama pena ini adalah profil pertama Anda. Setiap profil punya rak
+              bukunya sendiri. Anda bisa menambah profil lain nanti di
+              Pengaturan.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -146,7 +158,8 @@ export function Onboarding() {
               </Button>
 
               <p className="text-[11px] text-muted-foreground text-center pt-1">
-                Dengan memulai, studio Anda disimpan secara lokal di perangkat ini.
+                Data disimpan secara lokal di perangkat ini. Backup tersedia di
+                Pengaturan.
               </p>
             </form>
           </div>
