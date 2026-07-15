@@ -25,7 +25,6 @@ import { cn } from "@/lib/utils";
 import {
   BOOK_ACCENTS,
   BOOK_STATUSES,
-  BOOK_STATUS_LABEL,
   BOOK_TYPES,
   type BookAccent,
   type BookStatus,
@@ -33,6 +32,7 @@ import {
 } from "@/lib/domain";
 import { ACCENT_DOT } from "@/lib/accent";
 import { useAppStore } from "@/lib/store";
+import { useT } from "@/components/language-provider";
 
 type BookPayload = {
   title: string;
@@ -83,6 +83,7 @@ export function BookFormDialog({
   const [loading, setLoading] = React.useState(false);
   const { toast } = useToast();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
+  const t = useT();
 
   // Reset fields whenever the dialog opens.
   React.useEffect(() => {
@@ -98,11 +99,11 @@ export function BookFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const t = title.trim();
-    if (!t) {
+    const trimmed = title.trim();
+    if (!trimmed) {
       toast({
-        title: "Judul wajib diisi",
-        description: "Beri judul untuk buku Anda.",
+        title: t("bookForm.titleRequired"),
+        description: t("bookForm.titleHint"),
         variant: "destructive",
       });
       return;
@@ -110,10 +111,10 @@ export function BookFormDialog({
     setLoading(true);
     try {
       if (mode === "create" && !activeProfileId) {
-        throw new Error("Profil aktif tidak ditemukan.");
+        throw new Error(t("bookForm.noProfile"));
       }
       const body: Record<string, unknown> = {
-        title: t,
+        title: trimmed,
         type,
         genre: genre.trim() || undefined,
         description: description.trim() || undefined,
@@ -131,19 +132,21 @@ export function BookFormDialog({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Gagal menyimpan buku.");
+        throw new Error(data?.error || t("bookForm.errorSave"));
       }
       const { book } = await res.json();
       toast({
-        title: mode === "create" ? "Buku dibuat" : "Perubahan disimpan",
-        description: `"${book.title}" siap.${mode === "create" ? " Klik untuk mulai mengedit." : ""}`,
+        title: mode === "create" ? t("bookForm.created") : t("bookForm.updated"),
+        description: mode === "create"
+          ? t("bookForm.createdDesc", { title: book.title })
+          : t("bookForm.updatedDesc", { title: book.title }),
       });
       onSaved?.(book);
       onOpenChange(false);
     } catch (err) {
       toast({
-        title: "Terjadi kesalahan",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: t("common.error"),
+        description: err instanceof Error ? err.message : t("common.tryAgain"),
         variant: "destructive",
       });
     } finally {
@@ -156,23 +159,23 @@ export function BookFormDialog({
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Buat Buku Baru" : "Edit Buku"}
+            {mode === "create" ? t("bookForm.createTitle") : t("bookForm.editTitle")}
           </DialogTitle>
           <DialogDescription>
             {mode === "create"
-              ? "Mulai proyek baru — novel, komik, plot film, atau game."
-              : "Ubah detail buku Anda."}
+              ? t("bookForm.createDesc")
+              : t("bookForm.editDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="bk-title">Judul</Label>
+            <Label htmlFor="bk-title">{t("bookForm.titleLabel")}</Label>
             <Input
               id="bk-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="cth. Senja di Kota Tua"
+              placeholder={t("bookForm.titlePlaceholder")}
               autoFocus
               maxLength={120}
             />
@@ -180,7 +183,7 @@ export function BookFormDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="bk-type">Jenis Karya</Label>
+              <Label htmlFor="bk-type">{t("bookForm.typeLabel")}</Label>
               <Select
                 value={type}
                 onValueChange={(v) => setType(v as BookType)}
@@ -189,16 +192,16 @@ export function BookFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {BOOK_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
+                  {BOOK_TYPES.map((bt) => (
+                    <SelectItem key={bt} value={bt}>
+                      {t("bookType." + bt)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="bk-status">Status</Label>
+              <Label htmlFor="bk-status">{t("bookForm.statusLabel")}</Label>
               <Select
                 value={status}
                 onValueChange={(v) => setStatus(v as BookStatus)}
@@ -209,7 +212,7 @@ export function BookFormDialog({
                 <SelectContent>
                   {BOOK_STATUSES.map((s) => (
                     <SelectItem key={s} value={s}>
-                      {BOOK_STATUS_LABEL[s]}
+                      {t("bookStatus." + s)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -218,23 +221,23 @@ export function BookFormDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="bk-genre">Genre</Label>
+            <Label htmlFor="bk-genre">{t("bookForm.genreLabel")}</Label>
             <Input
               id="bk-genre"
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
-              placeholder="cth. Fantasi, Romansa, Thriller"
+              placeholder={t("bookForm.genrePlaceholder")}
               maxLength={80}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="bk-desc">Sinopsis / Deskripsi</Label>
+            <Label htmlFor="bk-desc">{t("bookForm.descLabel")}</Label>
             <Textarea
               id="bk-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ringkasan singkat tentang karya ini."
+              placeholder={t("bookForm.descPlaceholder")}
               rows={3}
               maxLength={600}
               className="resize-none"
@@ -242,14 +245,14 @@ export function BookFormDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Warna Sampul</Label>
+            <Label>{t("bookForm.coverColor")}</Label>
             <div className="flex flex-wrap gap-2">
               {BOOK_ACCENTS.map((a) => (
                 <button
                   key={a}
                   type="button"
                   onClick={() => setAccent(a)}
-                  aria-label={`Warna ${a}`}
+                  aria-label={t("bookForm.colorLabel", { color: a })}
                   className={cn(
                     "h-7 w-7 rounded-full transition-transform",
                     ACCENT_DOT[a],
@@ -268,7 +271,7 @@ export function BookFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Batal
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -276,10 +279,10 @@ export function BookFormDialog({
               className="bg-brand text-brand-foreground hover:bg-brand/90"
             >
               {loading
-                ? "Menyimpan…"
+                ? t("common.saving")
                 : mode === "create"
-                ? "Buat Buku"
-                : "Simpan"}
+                ? t("bookForm.createBtn")
+                : t("common.save")}
             </Button>
           </DialogFooter>
         </form>

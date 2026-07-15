@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PenLine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useT } from "@/components/language-provider";
 
 export function ProfileFormDialog({
   open,
@@ -35,6 +36,7 @@ export function ProfileFormDialog({
   const [bio, setBio] = React.useState(initial?.bio ?? "");
   const [loading, setLoading] = React.useState(false);
   const { toast } = useToast();
+  const t = useT();
 
   React.useEffect(() => {
     if (open) {
@@ -48,7 +50,7 @@ export function ProfileFormDialog({
     const name = penName.trim();
     if (!name) {
       toast({
-        title: "Nama pena wajib diisi",
+        title: t("profileForm.nameRequired"),
         variant: "destructive",
       });
       return;
@@ -64,16 +66,16 @@ export function ProfileFormDialog({
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        throw new Error(d?.error || "Gagal menyimpan profil.");
+        throw new Error(d?.error || t("profileForm.errorSave"));
       }
       toast({
-        title: mode === "create" ? "Profil dibuat" : "Profil diperbarui",
+        title: mode === "create" ? t("profileForm.created") : t("profileForm.updated"),
       });
       onSaved?.();
       onOpenChange(false);
     } catch (err) {
       toast({
-        title: "Terjadi kesalahan",
+        title: t("common.error"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -87,24 +89,24 @@ export function ProfileFormDialog({
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Tambah Profil" : "Edit Profil"}
+            {mode === "create" ? t("profileForm.createTitle") : t("profileForm.editTitle")}
           </DialogTitle>
           <DialogDescription>
             {mode === "create"
-              ? "Buat profil penulis baru. Tiap profil punya rak buku sendiri."
-              : "Ubah nama pena atau bio profil ini."}
+              ? t("profileForm.createDesc")
+              : t("profileForm.editDesc")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="pf-name">Nama Pena</Label>
+            <Label htmlFor="pf-name">{t("profileForm.nameLabel")}</Label>
             <div className="relative">
               <PenLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="pf-name"
                 value={penName}
                 onChange={(e) => setPenName(e.target.value)}
-                placeholder="cth. Tania Rengganis"
+                placeholder={t("profileForm.namePlaceholder")}
                 autoFocus
                 maxLength={60}
                 className="pl-9"
@@ -112,7 +114,7 @@ export function ProfileFormDialog({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="pf-bio">Bio (opsional)</Label>
+            <Label htmlFor="pf-bio">{t("profileForm.bioLabel")}</Label>
             <Textarea
               id="pf-bio"
               value={bio}
@@ -120,7 +122,7 @@ export function ProfileFormDialog({
               rows={3}
               maxLength={280}
               className="resize-none"
-              placeholder="Ceritakan sedikit tentang penulis ini."
+              placeholder={t("profileForm.bioPlaceholder")}
             />
           </div>
           <DialogFooter className="pt-2">
@@ -130,14 +132,14 @@ export function ProfileFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Batal
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="bg-brand text-brand-foreground hover:bg-brand/90"
             >
-              {loading ? "Menyimpan…" : mode === "create" ? "Buat" : "Simpan"}
+              {loading ? t("common.saving") : mode === "create" ? t("profileForm.createBtn") : t("common.save")}
             </Button>
           </DialogFooter>
         </form>

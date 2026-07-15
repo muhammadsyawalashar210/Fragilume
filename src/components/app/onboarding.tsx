@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAppStore, readStoredActiveProfile } from "@/lib/store";
 import { LogoBadge } from "@/components/app/logo";
-import { APP_NAME, APP_FULL_NAME, APP_TAGLINE, APP_VERSION } from "@/lib/brand";
+import { APP_NAME, APP_FULL_NAME, APP_VERSION } from "@/lib/brand";
+import { useT } from "@/components/language-provider";
 
 export function Onboarding() {
   const [penName, setPenName] = React.useState("");
@@ -18,14 +19,15 @@ export function Onboarding() {
   const { toast } = useToast();
   const setProfiles = useAppStore((s) => s.setProfiles);
   const setActiveProfileId = useAppStore((s) => s.setActiveProfileId);
+  const t = useT();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const name = penName.trim();
     if (!name) {
       toast({
-        title: "Nama pena diperlukan",
-        description: "Masukkan nama pena Anda untuk memulai.",
+        title: t("onboarding.penNameRequired"),
+        description: t("onboarding.penNameHint"),
         variant: "destructive",
       });
       return;
@@ -39,7 +41,7 @@ export function Onboarding() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Gagal menyimpan profil.");
+        throw new Error(data?.error || t("profileForm.errorSave"));
       }
       const { profile } = await res.json();
       // refresh profile list
@@ -55,13 +57,13 @@ export function Onboarding() {
       }
       void readStoredActiveProfile;
       toast({
-        title: `Selamat datang, ${profile.penName}!`,
-        description: "Studio Anda siap digunakan.",
+        title: t("onboarding.welcome", { name: profile.penName }),
+        description: t("onboarding.studioReady"),
       });
     } catch (err) {
       toast({
-        title: "Terjadi kesalahan",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: t("common.error"),
+        description: err instanceof Error ? err.message : t("common.tryAgain"),
         variant: "destructive",
       });
     } finally {
@@ -88,23 +90,21 @@ export function Onboarding() {
                   {APP_NAME}
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  {APP_TAGLINE}
+                  {t("app.tagline")}
                 </p>
               </div>
             </div>
 
             <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft text-foreground/80 px-3 py-1 text-[11px] font-medium mb-5">
               <Sparkles className="h-3 w-3 text-brand" />
-              Pertama kali di sini — mari atur profil Anda
+              {t("onboarding.firstRun")}
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight leading-tight">
-              Siapa nama pena Anda?
+              {t("onboarding.title")}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              Nama pena ini adalah profil pertama Anda. Setiap profil punya rak
-              bukunya sendiri. Anda bisa menambah profil lain nanti di
-              Pengaturan.
+              {t("onboarding.subtitle")}
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -113,7 +113,7 @@ export function Onboarding() {
                   htmlFor="penName"
                   className="text-xs font-medium text-foreground/80"
                 >
-                  Nama Pena <span className="text-brand">*</span>
+                  {t("onboarding.penName")} <span className="text-brand">*</span>
                 </label>
                 <div className="relative">
                   <PenLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -121,7 +121,7 @@ export function Onboarding() {
                     id="penName"
                     value={penName}
                     onChange={(e) => setPenName(e.target.value)}
-                    placeholder="cth. Tania Rengganis, K. Nara, dll."
+                    placeholder={t("profileForm.namePlaceholder")}
                     autoFocus
                     maxLength={60}
                     className="h-11 pl-9 text-base"
@@ -134,14 +134,14 @@ export function Onboarding() {
                   htmlFor="bio"
                   className="text-xs font-medium text-foreground/80"
                 >
-                  Bio singkat{" "}
-                  <span className="text-muted-foreground">(opsional)</span>
+                  {t("onboarding.bio")}{" "}
+                  <span className="text-muted-foreground">{t("onboarding.bioOptional")}</span>
                 </label>
                 <Textarea
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Ceritakan sedikit tentang diri atau genre yang Anda tulis."
+                  placeholder={t("onboarding.bioPlaceholder")}
                   rows={3}
                   maxLength={280}
                   className="resize-none"
@@ -153,13 +153,12 @@ export function Onboarding() {
                 disabled={loading}
                 className="w-full h-11 text-sm font-medium bg-brand text-brand-foreground hover:bg-brand/90"
               >
-                {loading ? "Menyiapkan studio…" : "Mulai Menulis"}
+                {loading ? t("onboarding.preparing") : t("onboarding.start")}
                 {!loading && <ArrowRight className="ml-1.5 h-4 w-4" />}
               </Button>
 
               <p className="text-[11px] text-muted-foreground text-center pt-1">
-                {APP_FULL_NAME} · {APP_VERSION} — data disimpan secara lokal
-                di perangkat ini. Backup tersedia di Pengaturan.
+                {t("onboarding.footer", { app: APP_FULL_NAME, version: APP_VERSION })}
               </p>
             </form>
           </div>

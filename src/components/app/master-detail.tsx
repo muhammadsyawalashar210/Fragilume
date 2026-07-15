@@ -5,6 +5,7 @@ import { ArrowLeft, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/language-provider";
 
 /**
  * Responsive master-detail layout.
@@ -36,6 +37,7 @@ export function MasterDetail({
   detail: React.ReactNode;
   emptyDetail?: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="flex-1 min-h-0 flex">
       {/* List panel */}
@@ -88,7 +90,7 @@ export function MasterDetail({
                 onClick={onBack}
                 className="gap-1 h-8"
               >
-                <ArrowLeft className="h-4 w-4" /> Kembali
+                <ArrowLeft className="h-4 w-4" /> {t("common.back")}
               </Button>
             </div>
             {detail}
@@ -97,7 +99,7 @@ export function MasterDetail({
           <div className="flex-1 flex items-center justify-center p-8">
             {emptyDetail ?? (
               <div className="text-center text-sm text-muted-foreground">
-                Pilih item di sebelah kiri untuk mulai mengedit.
+                {t("masterDetail.selectHint")}
               </div>
             )}
           </div>

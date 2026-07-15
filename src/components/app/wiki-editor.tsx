@@ -24,12 +24,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import {
-  WIKI_CATEGORIES,
-  WIKI_CATEGORY_LABEL,
-  type WikiCategory,
-} from "@/lib/domain";
+import { WIKI_CATEGORIES, type WikiCategory } from "@/lib/domain";
 import type { WikiEntryT } from "@/lib/types";
+import { useT } from "@/components/language-provider";
 import { useBookEntries } from "./use-book-entries";
 import { MasterDetail, MasterItem } from "./master-detail";
 import { SaveBadge, ListSkeleton, ListEmpty } from "./plot-editor";
@@ -53,6 +50,7 @@ export function WikiEditor({ bookId }: { bookId: string }) {
   const [search, setSearch] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const t = useT();
 
   const filtered = React.useMemo(() => {
     if (!search.trim()) return items;
@@ -69,7 +67,7 @@ export function WikiEditor({ bookId }: { bookId: string }) {
 
   async function handleAdd() {
     const created = await create({
-      title: "Entri Wiki Baru",
+      title: t("wiki.newEntry"),
       category: "character",
       content: "",
       tags: "",
@@ -80,9 +78,9 @@ export function WikiEditor({ bookId }: { bookId: string }) {
   return (
     <>
       <MasterDetail
-        listTitle="Wiki Karya"
-        addLabel="Tambah"
-        searchPlaceholder="Cari karakter, item…"
+        listTitle={t("wiki.listTitle")}
+        addLabel={t("common.add")}
+        searchPlaceholder={t("wiki.search")}
         search={search}
         onSearchChange={setSearch}
         onAdd={handleAdd}
@@ -95,7 +93,7 @@ export function WikiEditor({ bookId }: { bookId: string }) {
             <ListEmpty
               hasItems={items.length > 0}
               onAdd={handleAdd}
-              noun="entri wiki"
+              noun={t("wiki.noun")}
             />
           ) : (
             <div className="space-y-1">
@@ -113,24 +111,21 @@ export function WikiEditor({ bookId }: { bookId: string }) {
                     />
                   }
                   title={entry.title}
-                  subtitle={
-                    WIKI_CATEGORY_LABEL[entry.category as WikiCategory] ??
-                    entry.category
-                  }
+                  subtitle={t("wikiCategory." + (entry.category as string))}
                   meta={
                     entry.tags ? (
                       <div className="flex flex-wrap gap-1">
                         {entry.tags
                           .split(",")
-                          .map((t) => t.trim())
+                          .map((tg) => tg.trim())
                           .filter(Boolean)
                           .slice(0, 3)
-                          .map((t) => (
+                          .map((tg) => (
                             <span
-                              key={t}
+                              key={tg}
                               className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
                             >
-                              {t}
+                              {tg}
                             </span>
                           ))}
                       </div>
@@ -156,13 +151,13 @@ export function WikiEditor({ bookId }: { bookId: string }) {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus entri wiki ini?</AlertDialogTitle>
+            <AlertDialogTitle>{t("wiki.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              “{selected?.title}” akan dihapus dari wiki.
+              {t("wiki.deleteDesc", { title: selected?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-white hover:bg-destructive/90"
               onClick={async () => {
@@ -171,7 +166,7 @@ export function WikiEditor({ bookId }: { bookId: string }) {
                 }
               }}
             >
-              Hapus
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -189,6 +184,7 @@ function WikiDetail({
   onPatch: (data: Record<string, unknown>) => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const [title, setTitle] = React.useState(entry.title);
   const [category, setCategory] = React.useState<WikiCategory>(
     (entry.category as WikiCategory) ?? "character"
@@ -232,7 +228,7 @@ function WikiDetail({
       <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-border/50">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <BookMarked className="h-3.5 w-3.5" />
-          Wiki
+          {t("wiki.editorLabel")}
         </div>
         <div className="flex items-center gap-2">
           <SaveBadge status={status} />
@@ -242,7 +238,7 @@ function WikiDetail({
             onClick={onDelete}
             className="h-8 gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <Trash2 className="h-3.5 w-3.5" /> Hapus
+            <Trash2 className="h-3.5 w-3.5" /> {t("common.delete")}
           </Button>
         </div>
       </div>
@@ -251,13 +247,13 @@ function WikiDetail({
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Nama karakter / item / faksi…"
+          placeholder={t("wiki.titlePlaceholder")}
           className="text-xl font-semibold h-auto py-1 border-0 px-0 bg-transparent focus-visible:ring-0"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
           <div className="space-y-1.5">
-            <Label className="text-xs">Kategori</Label>
+            <Label className="text-xs">{t("wiki.category")}</Label>
             <Select
               value={category}
               onValueChange={(v) => setCategory(v as WikiCategory)}
@@ -270,7 +266,7 @@ function WikiDetail({
                   <SelectItem key={c} value={c}>
                     <span className="inline-flex items-center gap-2">
                       <span className={cn("h-2 w-2 rounded-full", CAT_DOT[c])} />
-                      {WIKI_CATEGORY_LABEL[c]}
+                      {t("wikiCategory." + c)}
                     </span>
                   </SelectItem>
                 ))}
@@ -279,13 +275,13 @@ function WikiDetail({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="w-tags" className="text-xs">
-              Tag (pisahkan dengan koma)
+              {t("wiki.tags")}
             </Label>
             <Input
               id="w-tags"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="protagonis, ksatria, api"
+              placeholder={t("wiki.tagsPlaceholder")}
               className="h-9"
             />
           </div>
@@ -293,13 +289,13 @@ function WikiDetail({
 
         <div className="space-y-1.5 mt-4">
           <Label htmlFor="w-content" className="text-xs">
-            Deskripsi
+            {t("wiki.content")}
           </Label>
           <Textarea
             id="w-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Latar belakang, sifat, penampilan, hubungan, kekuatan…"
+            placeholder={t("wiki.contentPlaceholder")}
             rows={18}
             className="resize-none min-h-[320px] leading-relaxed"
           />

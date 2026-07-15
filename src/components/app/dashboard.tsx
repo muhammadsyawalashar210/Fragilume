@@ -39,7 +39,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import {
-  BOOK_STATUS_LABEL,
   BOOK_TYPES,
   type BookAccent,
   type BookStatus,
@@ -47,6 +46,7 @@ import {
 } from "@/lib/domain";
 import { ACCENT_DOT } from "@/lib/accent";
 import type { BookWithCounts } from "@/lib/types";
+import { useT, useLanguage } from "@/components/language-provider";
 import { BookCover } from "./book-cover";
 import { BookFormDialog } from "./dialogs/book-form-dialog";
 import { formatRelative } from "./relative-date";
@@ -64,6 +64,7 @@ export function Dashboard() {
   const activeProfile = useAppStore((s) => s.activeProfile);
   const activeProfileId = useAppStore((s) => s.activeProfileId);
   const openEditor = useAppStore((s) => s.openEditor);
+  const t = useT();
 
   const loadBooks = React.useCallback(async () => {
     if (!activeProfileId) {
@@ -76,19 +77,19 @@ export function Dashboard() {
         `/api/books?profileId=${encodeURIComponent(activeProfileId)}`,
         { cache: "no-store" }
       );
-      if (!res.ok) throw new Error("Gagal memuat buku.");
+      if (!res.ok) throw new Error(t("dashboard.errorLoad"));
       const { books } = (await res.json()) as { books: BookWithCounts[] };
       setBooks(books);
     } catch (err) {
       toast({
-        title: "Gagal memuat rak buku",
+        title: t("dashboard.errorLoadShelf"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [toast, activeProfileId]);
+  }, [toast, activeProfileId, t]);
 
   React.useEffect(() => {
     setLoading(true);
@@ -110,16 +111,19 @@ export function Dashboard() {
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    const t = deleteTarget;
+    const target = deleteTarget;
     setDeleteTarget(null);
     try {
-      const res = await fetch(`/api/books/${t.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Gagal menghapus buku.");
-      setBooks((prev) => prev.filter((b) => b.id !== t.id));
-      toast({ title: "Buku dihapus", description: `"${t.title}" telah dihapus.` });
+      const res = await fetch(`/api/books/${target.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(t("dashboard.errorDelete"));
+      setBooks((prev) => prev.filter((b) => b.id !== target.id));
+      toast({
+        title: t("dashboard.deleted"),
+        description: t("dashboard.deletedDesc", { title: target.title }),
+      });
     } catch (err) {
       toast({
-        title: "Gagal menghapus",
+        title: t("dashboard.errorDeleteTitle"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -134,14 +138,15 @@ export function Dashboard() {
           <div>
             <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-brand mb-2">
               <Sparkles className="h-3 w-3" />
-              DASHBOARD
+              {t("dashboard.badge")}
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-              Selamat datang, {activeProfile?.penName?.split(" ")[0] ?? "Penulis"}
+              {t("dashboard.welcome", {
+                name: activeProfile?.penName?.split(" ")[0] ?? t("dashboard.writerFallback"),
+              })}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Kelola semua karya Anda di satu rak. Buat, atur, edit, dan hapus
-              buku dengan bebas.
+              {t("dashboard.subtitle")}
             </p>
           </div>
           <Button
@@ -149,7 +154,7 @@ export function Dashboard() {
             className="h-10 gap-1.5 bg-brand text-brand-foreground hover:bg-brand/90"
           >
             <Plus className="h-4 w-4" />
-            Buat Buku
+            {t("dashboard.createBook")}
           </Button>
         </div>
 
@@ -160,7 +165,7 @@ export function Dashboard() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari judul, genre…"
+              placeholder={t("dashboard.search")}
               className="pl-9 h-9"
             />
           </div>
@@ -169,15 +174,15 @@ export function Dashboard() {
               active={typeFilter === "all"}
               onClick={() => setTypeFilter("all")}
             >
-              Semua
+              {t("dashboard.all")}
             </FilterChip>
-            {BOOK_TYPES.map((t) => (
+            {BOOK_TYPES.map((bt) => (
               <FilterChip
-                key={t}
-                active={typeFilter === t}
-                onClick={() => setTypeFilter(t)}
+                key={bt}
+                active={typeFilter === bt}
+                onClick={() => setTypeFilter(bt)}
               >
-                {t}
+                {t("bookType." + bt)}
               </FilterChip>
             ))}
           </div>
@@ -247,20 +252,18 @@ export function Dashboard() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus buku ini?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Buku <span className="font-medium text-foreground">“{deleteTarget?.title}”</span>{" "}
-              beserta semua plot, world building, dan wiki di dalamnya akan
-              dihapus permanen. Tindakan ini tidak bisa dibatalkan.
+              {t("dashboard.deleteDesc", { title: deleteTarget?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
-              Hapus
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -306,8 +309,10 @@ function BookCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const statusLabel =
-    BOOK_STATUS_LABEL[book.status as BookStatus] ?? book.status;
+  const t = useT();
+  const { locale } = useLanguage();
+  const statusLabel = t("bookStatus." + (book.status as string));
+  const typeLabel = t("bookType." + (book.type as string));
   const counts = book._count;
 
   return (
@@ -332,7 +337,7 @@ function BookCard({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label="Opsi buku"
+              aria-label={t("dashboard.bookOptions")}
               className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-black/40 text-white backdrop-blur hover:bg-black/60"
             >
               <MoreVertical className="h-3.5 w-3.5" />
@@ -340,17 +345,17 @@ function BookCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={onOpen}>
-              <BookOpen className="h-4 w-4 mr-2" /> Buka
+              <BookOpen className="h-4 w-4 mr-2" /> {t("dashboard.openBook")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="h-4 w-4 mr-2" /> Edit / Ganti Nama
+              <Pencil className="h-4 w-4 mr-2" /> {t("dashboard.editRename")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={onDelete}
               className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="h-4 w-4 mr-2" /> Hapus
+              <Trash2 className="h-4 w-4 mr-2" /> {t("common.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -363,7 +368,7 @@ function BookCard({
             className={cn("h-2 w-2 rounded-full", ACCENT_DOT[book.accent as keyof typeof ACCENT_DOT] ?? "bg-amber-500")}
           />
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
-            {book.type}
+            {typeLabel}
           </span>
           <span className="text-[10px] text-muted-foreground">·</span>
           <span className="text-[10px] text-muted-foreground">{statusLabel}</span>
@@ -377,21 +382,21 @@ function BookCard({
           </p>
         ) : null}
         <div className="flex items-center gap-2.5 mt-2 text-[10px] text-muted-foreground">
-          <span className="inline-flex items-center gap-0.5" title="Plot">
+          <span className="inline-flex items-center gap-0.5" title={t("nav.plot")}>
             <Workflow className="h-3 w-3" />
             {counts?.plotNodes ?? 0}
           </span>
-          <span className="inline-flex items-center gap-0.5" title="World Building">
+          <span className="inline-flex items-center gap-0.5" title={t("nav.worldBuilding")}>
             <Globe2 className="h-3 w-3" />
             {counts?.worldEntries ?? 0}
           </span>
-          <span className="inline-flex items-center gap-0.5" title="Wiki">
+          <span className="inline-flex items-center gap-0.5" title={t("nav.wiki")}>
             <BookMarked className="h-3 w-3" />
             {counts?.wikiEntries ?? 0}
           </span>
         </div>
         <p className="text-[10px] text-muted-foreground/70 mt-1">
-          {formatRelative(book.updatedAt)}
+          {formatRelative(book.updatedAt, locale)}
         </p>
       </div>
     </div>
@@ -419,25 +424,26 @@ function EmptyState({
   hasBooks: boolean;
   onCreate: () => void;
 }) {
+  const t = useT();
   return (
     <div className="h-full min-h-[50vh] flex flex-col items-center justify-center text-center px-6">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-soft text-brand mb-4">
         <Library className="h-8 w-8" />
       </div>
       <h3 className="text-lg font-semibold">
-        {hasBooks ? "Tidak ada buku yang cocok" : "Rak buku Anda masih kosong"}
+        {hasBooks ? t("dashboard.noMatch") : t("dashboard.empty")}
       </h3>
       <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">
         {hasBooks
-          ? "Coba ubah kata kunci pencarian atau filter jenis karya."
-          : "Mulai buat buku pertama Anda — novel, komik, plot film, atau game. Semua bisa diatur dari sini."}
+          ? t("dashboard.noMatchDesc")
+          : t("dashboard.emptyDesc")}
       </p>
       {!hasBooks && (
         <Button
           onClick={onCreate}
           className="mt-5 gap-1.5 bg-brand text-brand-foreground hover:bg-brand/90"
         >
-          <Plus className="h-4 w-4" /> Buat Buku Pertama
+          <Plus className="h-4 w-4" /> {t("dashboard.createFirst")}
         </Button>
       )}
     </div>

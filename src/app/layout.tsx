@@ -5,6 +5,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AccentProvider } from "@/components/accent-provider";
+import { LanguageProvider } from "@/components/language-provider";
 import { accentNoFlashScript } from "@/lib/accent-presets";
 
 const geistSans = Geist({
@@ -59,8 +60,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AccentProvider>
-            {children}
-            <Toaster />
+            <LanguageProvider>
+              {children}
+              <Toaster />
+            </LanguageProvider>
           </AccentProvider>
         </ThemeProvider>
       </body>

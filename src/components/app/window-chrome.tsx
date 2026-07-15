@@ -4,9 +4,11 @@ import { Minus, Square, X } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { LogoMark } from "@/components/app/logo";
 import { APP_NAME, APP_VERSION } from "@/lib/brand";
+import { useT } from "@/components/language-provider";
 
 export function WindowChrome() {
   const activeProfile = useAppStore((s) => s.activeProfile);
+  const t = useT();
 
   return (
     <header className="hidden md:flex h-11 shrink-0 w-full items-center justify-between px-3 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 select-none">
@@ -34,21 +36,21 @@ export function WindowChrome() {
       <div className="flex items-center gap-0.5">
         <button
           type="button"
-          aria-label="Minimalkan"
+          aria-label={t("nav.minimize")}
           className="inline-flex h-8 w-9 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
         >
           <Minus className="h-3.5 w-3.5" />
         </button>
         <button
           type="button"
-          aria-label="Maksimalkan"
+          aria-label={t("nav.maximize")}
           className="inline-flex h-8 w-9 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
         >
           <Square className="h-3 w-3" />
         </button>
         <button
           type="button"
-          aria-label="Tutup"
+          aria-label={t("nav.close")}
           className="inline-flex h-8 w-9 items-center justify-center text-muted-foreground hover:text-white hover:bg-destructive rounded-md transition-colors"
         >
           <X className="h-3.5 w-3.5" />

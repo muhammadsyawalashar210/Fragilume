@@ -138,3 +138,51 @@ Verification (Agent Browser):
 
 Stage Summary:
 - App renamed to "Fragilume — Note Studio for Author or Interest" v0.1 across all surfaces. Logo converted from PNG to customizable SVG (currentColor mark + gradient badge). Accent color customization (8 presets, light/dark variants, persisted, no-FOUC). README.md + BUILD.md + Electron scaffold + Capacitor guide created for GitHub portfolio + .exe/.AppImage/macOS/.apk packaging. All verified end-to-end in browser.
+
+---
+Task ID: 20-22
+Agent: main
+Task: Add language settings (Indonesian + English US) with flag icons, full i18n across entire app
+
+Work Log:
+- Built i18n infrastructure from scratch (no next-intl routing needed — app is a client-side SPA):
+  - src/lib/i18n.ts: Complete translation dictionary with ~200 keys for both "id" (Bahasa Indonesia) and "en-US" (English US). Includes Locale type, LOCALES metadata (code, native label, English label, flag code), translate() function with {param} interpolation, isLocale() validator, and date-fns locale mapping.
+  - src/components/language-provider.tsx: React Context provider that reads/writes localStorage "fragilume-locale", keeps <html lang> in sync, and exposes useT() / useLanguage() hooks. Default locale: "id".
+  - src/components/app/flag-icon.tsx: Inline SVG flags — Indonesia (red/white horizontal split) and United States (13 stripes + blue canton with star grid). Crisp at small sizes, no image assets needed.
+  - src/components/app/relative-date.ts: Updated to accept Locale param, imports both date-fns id and enUS locales. "2 hari yang lalu" → "2 days ago" when English is selected.
+- Wrapped app in <LanguageProvider> inside <AccentProvider> in layout.tsx. Provider reads stored locale on mount and sets document.documentElement.lang ("id" or "en").
+- Translated ALL UI strings across 14 files:
+  - window-chrome.tsx (aria-labels: minimize/maximize/close)
+  - nav-rail.tsx (full rewrite: nav labels, descriptions, aria-labels, tooltips, brand text, "select book" hint — EDIT_CHILDREN uses labelKey/descKey pattern)
+  - status-bar.tsx (view labels, "Saved locally")
+  - onboarding.tsx (title, subtitle, pen name, bio, first-run badge, welcome toast, footer)
+  - dashboard.tsx (full rewrite: heading, subtitle, search, filter chips with translated book types, empty states, delete dialog, card menu, book count tooltips)
+  - book-editor.tsx (tabs, back button, edit button, no-book-selected state)
+  - plot-editor.tsx (full rewrite: list title, search, add, delete dialog, detail labels — Type/Summary/Manuscript, SaveBadge/ListEmpty shared components)
+  - world-editor.tsx (full rewrite: list title, search, add, delete dialog, detail labels — Category/Description, category dot labels)
+  - wiki-editor.tsx (full rewrite: list title, search, add, delete dialog, detail labels — Category/Tags/Description)
+  - master-detail.tsx (Back button, select hint)
+  - use-book-entries.ts (CRUD error messages — added t to useCallback deps for live locale switching)
+  - book-form-dialog.tsx (all labels, placeholders, buttons, error toasts, book type/status select options — renamed local `const t = title.trim()` to `trimmed` to avoid conflict with translate function)
+  - profile-form-dialog.tsx (all labels, placeholders, buttons, error toasts)
+  - settings-view.tsx (full rewrite: header, profiles section, theme section, accent section, NEW language section, backup section — all strings translated, `const t = deleteTarget` renamed to `target` to avoid conflict)
+- Domain labels translated via t("bookType." + type), t("bookStatus." + status), t("plotKind." + kind), t("worldCategory." + cat), t("wikiCategory." + cat) — no changes to domain.ts constants (values stay as data keys, only display is translated).
+- LanguageSection in settings: 2-column grid with flag icon + native label + English label + check mark for active. Placed between AccentSection and BackupSection. Toast confirmation on switch.
+
+Verification (Agent Browser):
+- Default locale ID: page loads with "Selamat datang, Tania", htmlLang="id", status bar "Tersimpan lokal" ✓
+- Settings → Language section shows 2 options with flag SVGs: "Bahasa Indonesia" (ID flag) and "English (US)" (US flag) ✓
+- Clicked English (US): htmlLang→"en", localStorage="en-US", heading→"Settings", all nav→"Dashboard"/"Edit Book"/"Settings" ✓
+- Dashboard in EN: "Welcome, Tania", "Manage all your works on one shelf...", "New Book", "Search title, genre…", "Your bookshelf is still empty", "Saved locally" ✓
+- Filter chips translated: "All", "Novel", "Comic", "Film", "Game", "Other" ✓
+- Book form dialog in EN: "Create New Book", "Title", "Work Type", "Status" (Draft), "Genre", "Cover Color", "Cancel", "Create Book" ✓
+- Created book "Test Book" → appeared on dashboard with "NOVEL" type label ✓
+- Opened editor: tabs "Plot"/"World Building"/"Wiki", list title "Plot Structure", status bar "Plot Editor / Test Book" ✓
+- Plot detail: default title "New Section", labels "Type"/"Summary"/"Manuscript / Notes", placeholders all EN, "Delete" button ✓
+- Reloaded page: English persisted (localStorage + html lang) ✓
+- Switched back to Indonesian: htmlLang→"id", heading→"Pengaturan" ✓
+- No page errors, no console errors ✓
+- Lint: 0 errors, 0 warnings ✓
+
+Stage Summary:
+- Full bilingual support (Bahasa Indonesia + English US) with instant switching, flag icons, and localStorage persistence. Every user-facing string across all 14 component files is translated. Domain labels (book types, statuses, plot kinds, world/wiki categories) are locale-aware. Relative dates adapt to locale (date-fns). The <html lang> attribute updates dynamically for accessibility/SEO. Language section in Settings with inline SVG flag icons (Indonesia red/white + US stars-and-stripes).

@@ -22,18 +22,19 @@ import { cn } from "@/lib/utils";
 import { useAppStore, type AppView } from "@/lib/store";
 import { LogoMark } from "@/components/app/logo";
 import { APP_NAME, APP_VERSION } from "@/lib/brand";
+import { useT } from "@/components/language-provider";
 
 type NavLeaf = {
   view: AppView;
-  label: string;
+  labelKey: string;
   icon: LucideIcon;
-  desc: string;
+  descKey: string;
 };
 
 const EDIT_CHILDREN: NavLeaf[] = [
-  { view: "plot", label: "Plot", icon: Workflow, desc: "Struktur cerita" },
-  { view: "world", label: "World Building", icon: Globe2, desc: "Dunia cerita" },
-  { view: "wiki", label: "Wiki", icon: BookMarked, desc: "Karakter & ensiklopedia" },
+  { view: "plot", labelKey: "nav.plot", icon: Workflow, descKey: "nav.plotDesc" },
+  { view: "world", labelKey: "nav.worldBuilding", icon: Globe2, descKey: "nav.worldDesc" },
+  { view: "wiki", labelKey: "nav.wiki", icon: BookMarked, descKey: "nav.wikiDesc" },
 ];
 
 /**
@@ -51,6 +52,7 @@ function NavContent({
   const setView = useAppStore((s) => s.setView);
   const selectedBookId = useAppStore((s) => s.selectedBookId);
   const activeProfile = useAppStore((s) => s.activeProfile);
+  const t = useT();
 
   const editorActive =
     view === "plot" || view === "world" || view === "wiki";
@@ -86,20 +88,20 @@ function NavContent({
               {APP_NAME}
             </div>
             <div className="text-[10px] text-muted-foreground">
-              {activeProfile?.penName ?? "Tanpa profil"}
+              {activeProfile?.penName ?? t("nav.noProfile")}
             </div>
           </div>
         </div>
 
         <nav className="flex-1 overflow-y-auto fancy-scroll p-3 space-y-1">
           <LabelItem
-            label="Dashboard"
+            label={t("nav.dashboard")}
             icon={LayoutDashboard}
             active={view === "dashboard"}
             onClick={() => go("dashboard")}
           />
           <LabelGroup
-            label="Edit Buku"
+            label={t("nav.editBook")}
             icon={BookOpen}
             open={editorOpen}
             onToggle={() => setEditorOpen((v) => !v)}
@@ -108,7 +110,7 @@ function NavContent({
             {EDIT_CHILDREN.map((c) => (
               <LabelSubItem
                 key={c.view}
-                label={c.label}
+                label={t(c.labelKey)}
                 icon={c.icon}
                 active={view === c.view}
                 disabled={!selectedBookId}
@@ -117,7 +119,7 @@ function NavContent({
             ))}
           </LabelGroup>
           <LabelItem
-            label="Pengaturan"
+            label={t("nav.settings")}
             icon={Settings}
             active={view === "settings"}
             onClick={() => go("settings")}
@@ -135,10 +137,10 @@ function NavContent({
             </div>
             <div className="text-left min-w-0">
               <div className="text-xs font-medium truncate">
-                {activeProfile?.penName ?? "Tanpa nama"}
+                {activeProfile?.penName ?? t("nav.noName")}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                Kelola profil
+                {t("nav.manageProfile")}
               </div>
             </div>
           </button>
@@ -157,15 +159,15 @@ function NavContent({
         <div className="h-px w-8 bg-border/70 my-0.5" />
 
         <IconItem
-          label="Dashboard"
-          desc="Rak buku Anda"
+          label={t("nav.dashboard")}
+          desc={t("nav.dashboardDesc")}
           icon={LayoutDashboard}
           active={view === "dashboard"}
           onClick={() => go("dashboard")}
         />
         <IconItem
-          label="Edit Buku"
-          desc="Plot · World Building · Wiki"
+          label={t("nav.editBook")}
+          desc={t("nav.editBookDesc")}
           icon={BookOpen}
           active={editorActive}
           chevron={editorOpen}
@@ -186,8 +188,8 @@ function NavContent({
               {EDIT_CHILDREN.map((child) => (
                 <IconSubItem
                   key={child.view}
-                  label={child.label}
-                  desc={child.desc}
+                  label={t(child.labelKey)}
+                  desc={t(child.descKey)}
                   icon={child.icon}
                   active={view === child.view}
                   onClick={() => selectedBookId && go(child.view)}
@@ -200,8 +202,8 @@ function NavContent({
         <div className="flex-1" />
 
         <IconItem
-          label="Pengaturan"
-          desc="Profil, tema, backup"
+          label={t("nav.settings")}
+          desc={t("nav.settingsDesc")}
           icon={Settings}
           active={view === "settings"}
           onClick={() => go("settings")}
@@ -218,16 +220,16 @@ function NavContent({
                 "ring-1 ring-border/60 hover:ring-brand/50 transition-all",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               )}
-              aria-label={`Profil: ${activeProfile?.penName ?? ""}`}
+              aria-label={`${t("nav.settings")}: ${activeProfile?.penName ?? ""}`}
             >
               {initials}
             </button>
           </TooltipTrigger>
           <TooltipContent side="right" className="text-xs">
             <div className="font-medium">
-              {activeProfile?.penName ?? "Tanpa nama"}
+              {activeProfile?.penName ?? t("nav.noName")}
             </div>
-            <div className="text-muted-foreground">Buka pengaturan</div>
+            <div className="text-muted-foreground">{t("nav.openSettings")}</div>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -259,12 +261,13 @@ export function MobileTopBar() {
   const setMobileNavOpen = useAppStore((s) => s.setMobileNavOpen);
   const setView = useAppStore((s) => s.setView);
   const activeProfile = useAppStore((s) => s.activeProfile);
+  const t = useT();
 
   return (
     <header className="md:hidden h-12 shrink-0 flex items-center justify-between px-3 border-b border-border/60 bg-background/80 backdrop-blur">
       <button
         type="button"
-        aria-label="Buka menu"
+        aria-label={t("nav.openMenu")}
         onClick={() => setMobileNavOpen(true)}
         className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-foreground/80 hover:text-foreground hover:bg-accent transition-colors"
       >
@@ -287,7 +290,7 @@ export function MobileTopBar() {
 
       <button
         type="button"
-        aria-label="Pengaturan"
+        aria-label={t("nav.settings")}
         onClick={() => setView("settings")}
         className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-foreground/80 hover:text-foreground hover:bg-accent transition-colors"
       >
@@ -302,6 +305,7 @@ export function MobileTopBar() {
 export function MobileNavDrawer() {
   const open = useAppStore((s) => s.mobileNavOpen);
   const setOpen = useAppStore((s) => s.setMobileNavOpen);
+  const t = useT();
 
   React.useEffect(() => {
     // Lock body scroll while the drawer is open.
@@ -322,7 +326,7 @@ export function MobileNavDrawer() {
             <motion.button
               key="backdrop"
               type="button"
-              aria-label="Tutup menu"
+              aria-label={t("nav.closeMenu")}
               onClick={() => setOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -493,6 +497,7 @@ function LabelGroup({
   disabled?: boolean;
   children: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <div>
       <button
@@ -506,7 +511,9 @@ function LabelGroup({
         <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
         <span className="flex-1 text-left">{label}</span>
         {disabled ? (
-          <span className="text-[10px] text-muted-foreground">pilih buku</span>
+          <span className="text-[10px] text-muted-foreground">
+            {t("nav.selectBook")}
+          </span>
         ) : (
           <ChevronRight
             className={cn(

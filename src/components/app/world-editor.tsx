@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -25,12 +24,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import {
-  WORLD_CATEGORIES,
-  WORLD_CATEGORY_LABEL,
-  type WorldCategory,
-} from "@/lib/domain";
+import { WORLD_CATEGORIES, type WorldCategory } from "@/lib/domain";
 import type { WorldEntryT } from "@/lib/types";
+import { useT } from "@/components/language-provider";
 import { useBookEntries } from "./use-book-entries";
 import { MasterDetail, MasterItem } from "./master-detail";
 import { SaveBadge, ListSkeleton, ListEmpty } from "./plot-editor";
@@ -56,6 +52,7 @@ export function WorldEditor({ bookId }: { bookId: string }) {
   const [search, setSearch] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const t = useT();
 
   const filtered = React.useMemo(() => {
     if (!search.trim()) return items;
@@ -71,7 +68,7 @@ export function WorldEditor({ bookId }: { bookId: string }) {
 
   async function handleAdd() {
     const created = await create({
-      title: "Entri Dunia Baru",
+      title: t("world.newEntry"),
       category: "location",
       content: "",
     });
@@ -81,9 +78,9 @@ export function WorldEditor({ bookId }: { bookId: string }) {
   return (
     <>
       <MasterDetail
-        listTitle="World Building"
-        addLabel="Tambah"
-        searchPlaceholder="Cari lokasi, budaya…"
+        listTitle={t("nav.worldBuilding")}
+        addLabel={t("common.add")}
+        searchPlaceholder={t("world.search")}
         search={search}
         onSearchChange={setSearch}
         onAdd={handleAdd}
@@ -96,7 +93,7 @@ export function WorldEditor({ bookId }: { bookId: string }) {
             <ListEmpty
               hasItems={items.length > 0}
               onAdd={handleAdd}
-              noun="entri dunia"
+              noun={t("world.noun")}
             />
           ) : (
             <div className="space-y-1">
@@ -115,10 +112,7 @@ export function WorldEditor({ bookId }: { bookId: string }) {
                     />
                   }
                   title={entry.title}
-                  subtitle={
-                    WORLD_CATEGORY_LABEL[entry.category as WorldCategory] ??
-                    entry.category
-                  }
+                  subtitle={t("worldCategory." + (entry.category as string))}
                 />
               ))}
             </div>
@@ -139,13 +133,13 @@ export function WorldEditor({ bookId }: { bookId: string }) {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus entri ini?</AlertDialogTitle>
+            <AlertDialogTitle>{t("world.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              “{selected?.title}” akan dihapus dari world building.
+              {t("world.deleteDesc", { title: selected?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-white hover:bg-destructive/90"
               onClick={async () => {
@@ -154,7 +148,7 @@ export function WorldEditor({ bookId }: { bookId: string }) {
                 }
               }}
             >
-              Hapus
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -172,6 +166,7 @@ function WorldDetail({
   onPatch: (data: Record<string, unknown>) => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const [title, setTitle] = React.useState(entry.title);
   const [category, setCategory] = React.useState<WorldCategory>(
     (entry.category as WorldCategory) ?? "other"
@@ -213,7 +208,7 @@ function WorldDetail({
       <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-border/50">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Globe2 className="h-3.5 w-3.5" />
-          World Building
+          {t("world.editorLabel")}
         </div>
         <div className="flex items-center gap-2">
           <SaveBadge status={status} />
@@ -223,7 +218,7 @@ function WorldDetail({
             onClick={onDelete}
             className="h-8 gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <Trash2 className="h-3.5 w-3.5" /> Hapus
+            <Trash2 className="h-3.5 w-3.5" /> {t("common.delete")}
           </Button>
         </div>
       </div>
@@ -232,13 +227,13 @@ function WorldDetail({
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Nama lokasi / budaya / sistem…"
+          placeholder={t("world.titlePlaceholder")}
           className="text-xl font-semibold h-auto py-1 border-0 px-0 bg-transparent focus-visible:ring-0"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
           <div className="space-y-1.5">
-            <Label className="text-xs">Kategori</Label>
+            <Label className="text-xs">{t("world.category")}</Label>
             <Select
               value={category}
               onValueChange={(v) => setCategory(v as WorldCategory)}
@@ -256,7 +251,7 @@ function WorldDetail({
                           CAT_DOT[c]
                         )}
                       />
-                      {WORLD_CATEGORY_LABEL[c]}
+                      {t("worldCategory." + c)}
                     </span>
                   </SelectItem>
                 ))}
@@ -267,13 +262,13 @@ function WorldDetail({
 
         <div className="space-y-1.5 mt-4">
           <Label htmlFor="w-content" className="text-xs">
-            Deskripsi & Detail
+            {t("world.content")}
           </Label>
           <Textarea
             id="w-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Geografi, sejarah, budaya, aturan magis, teknologi… jelaskan detail dunia Anda."
+            placeholder={t("world.contentPlaceholder")}
             rows={18}
             className="resize-none min-h-[320px] leading-relaxed"
           />

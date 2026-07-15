@@ -14,20 +14,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAppStore, type AppView } from "@/lib/store";
-import { BOOK_STATUS_LABEL, type BookStatus } from "@/lib/domain";
+import { type BookStatus } from "@/lib/domain";
 import { ACCENT_DOT } from "@/lib/accent";
 import type { BookWithCounts } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useT } from "@/components/language-provider";
 import { BookCover } from "./book-cover";
 import { BookFormDialog } from "./dialogs/book-form-dialog";
 import { PlotEditor } from "./plot-editor";
 import { WorldEditor } from "./world-editor";
 import { WikiEditor } from "./wiki-editor";
 
-const TABS: { view: AppView; label: string; icon: LucideIcon }[] = [
-  { view: "plot", label: "Plot", icon: Workflow },
-  { view: "world", label: "World Building", icon: Globe2 },
-  { view: "wiki", label: "Wiki", icon: BookMarked },
+const TABS: { view: AppView; labelKey: string; icon: LucideIcon }[] = [
+  { view: "plot", labelKey: "nav.plot", icon: Workflow },
+  { view: "world", labelKey: "nav.worldBuilding", icon: Globe2 },
+  { view: "wiki", labelKey: "nav.wiki", icon: BookMarked },
 ];
 
 export function BookEditor() {
@@ -37,6 +38,7 @@ export function BookEditor() {
   const selectedBookTitle = useAppStore((s) => s.selectedBookTitle);
   const selectBook = useAppStore((s) => s.selectBook);
   const { toast } = useToast();
+  const t = useT();
 
   const [book, setBook] = React.useState<BookWithCounts | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -61,8 +63,8 @@ export function BookEditor() {
       .catch(() => {
         if (active)
           toast({
-            title: "Gagal memuat buku",
-            description: "Buka dashboard dan coba lagi.",
+            title: t("editor.errorLoad"),
+            description: t("editor.errorLoadDesc"),
             variant: "destructive",
           });
       })
@@ -89,7 +91,7 @@ export function BookEditor() {
               className="h-8 mt-0.5 shrink-0 gap-1"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Dashboard</span>
+              <span className="hidden sm:inline">{t("nav.dashboard")}</span>
             </Button>
 
             <div className="min-w-0">
@@ -112,8 +114,7 @@ export function BookEditor() {
                         {book.type}
                       </span>
                       <Badge variant="secondary" className="text-[10px] h-5">
-                        {BOOK_STATUS_LABEL[book.status as BookStatus] ??
-                          book.status}
+                        {t("bookStatus." + (book.status as string))}
                       </Badge>
                       {book.genre ? (
                         <span className="text-[11px] text-muted-foreground">
@@ -137,7 +138,7 @@ export function BookEditor() {
               className="h-8 gap-1 shrink-0"
             >
               <Pencil className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Edit Buku</span>
+              <span className="hidden sm:inline">{t("editor.editBook")}</span>
             </Button>
           ) : null}
         </div>
@@ -160,7 +161,7 @@ export function BookEditor() {
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />
-                {tab.label}
+                {t(tab.labelKey)}
                 {active && (
                   <motion.span
                     layoutId="editor-tab"
@@ -208,21 +209,21 @@ export function BookEditor() {
 
 function NoBookSelected() {
   const setView = useAppStore((s) => s.setView);
+  const t = useT();
   return (
     <div className="h-full flex flex-col items-center justify-center text-center px-6">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-soft text-brand mb-4">
         <BookMarked className="h-8 w-8" />
       </div>
-      <h3 className="text-lg font-semibold">Belum ada buku dipilih</h3>
+      <h3 className="text-lg font-semibold">{t("editor.noBookTitle")}</h3>
       <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">
-        Pilih buku dari dashboard untuk mulai mengedit plot, world building,
-        atau wiki.
+        {t("editor.noBookDesc")}
       </p>
       <Button
         onClick={() => setView("dashboard")}
         className="mt-5 gap-1.5 bg-brand text-brand-foreground hover:bg-brand/90"
       >
-        <ArrowLeft className="h-4 w-4" /> Buka Dashboard
+        <ArrowLeft className="h-4 w-4" /> {t("editor.openDashboard")}
       </Button>
     </div>
   );

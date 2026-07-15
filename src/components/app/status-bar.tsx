@@ -4,19 +4,21 @@ import { Circle, HardDrive } from "lucide-react";
 import { useAppStore, type AppView } from "@/lib/store";
 import { LogoMark } from "@/components/app/logo";
 import { APP_NAME, APP_VERSION } from "@/lib/brand";
+import { useT } from "@/components/language-provider";
 
-const VIEW_LABEL: Record<AppView, string> = {
-  dashboard: "Dashboard",
-  plot: "Editor Plot",
-  world: "Editor World Building",
-  wiki: "Editor Wiki",
-  settings: "Pengaturan",
+const VIEW_LABEL_KEY: Record<AppView, string> = {
+  dashboard: "status.dashboard",
+  plot: "status.editorPlot",
+  world: "status.editorWorld",
+  wiki: "status.editorWiki",
+  settings: "status.settings",
 };
 
 export function StatusBar() {
   const activeProfile = useAppStore((s) => s.activeProfile);
   const view = useAppStore((s) => s.view);
   const bookTitle = useAppStore((s) => s.selectedBookTitle);
+  const t = useT();
 
   return (
     <footer className="h-7 shrink-0 w-full flex items-center justify-between px-3 text-[11px] text-muted-foreground border-t border-border/60 bg-background/80 backdrop-blur">
@@ -28,7 +30,7 @@ export function StatusBar() {
           </span>
         </span>
         <span className="opacity-40">·</span>
-        <span className="truncate">{VIEW_LABEL[view]}</span>
+        <span className="truncate">{t(VIEW_LABEL_KEY[view])}</span>
         {bookTitle && view !== "dashboard" && view !== "settings" ? (
           <>
             <span className="opacity-40">/</span>
@@ -39,7 +41,7 @@ export function StatusBar() {
       <div className="hidden sm:flex items-center gap-3">
         <span className="inline-flex items-center gap-1">
           <Circle className="h-2 w-2 fill-emerald-500 text-emerald-500" />
-          Tersimpan lokal
+          {t("status.savedLocal")}
         </span>
         <span className="opacity-40">·</span>
         <span className="inline-flex items-center gap-1">

@@ -25,12 +25,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import {
-  PLOT_KIND_LABEL,
-  PLOT_KINDS,
-  type PlotKind,
-} from "@/lib/domain";
+import { PLOT_KINDS, type PlotKind } from "@/lib/domain";
 import type { PlotNodeT } from "@/lib/types";
+import { useT } from "@/components/language-provider";
 import { useBookEntries } from "./use-book-entries";
 import { MasterDetail, MasterItem } from "./master-detail";
 
@@ -51,6 +48,7 @@ export function PlotEditor({ bookId }: { bookId: string }) {
   const [search, setSearch] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const t = useT();
 
   const filtered = React.useMemo(() => {
     if (!search.trim()) return items;
@@ -66,7 +64,7 @@ export function PlotEditor({ bookId }: { bookId: string }) {
 
   async function handleAdd() {
     const created = await create({
-      title: "Bagian Baru",
+      title: t("plot.newSection"),
       kind: "chapter",
       summary: "",
       content: "",
@@ -77,9 +75,9 @@ export function PlotEditor({ bookId }: { bookId: string }) {
   return (
     <>
       <MasterDetail
-        listTitle="Struktur Plot"
-        addLabel="Tambah"
-        searchPlaceholder="Cari bab/adegan…"
+        listTitle={t("plot.structure")}
+        addLabel={t("common.add")}
+        searchPlaceholder={t("plot.search")}
         search={search}
         onSearchChange={setSearch}
         onAdd={handleAdd}
@@ -92,7 +90,7 @@ export function PlotEditor({ bookId }: { bookId: string }) {
             <ListEmpty
               hasItems={items.length > 0}
               onAdd={handleAdd}
-              noun="plot"
+              noun={t("plot.noun")}
             />
           ) : (
             <div className="space-y-1">
@@ -110,11 +108,11 @@ export function PlotEditor({ bookId }: { bookId: string }) {
                           KIND_BADGE_CLASS.chapter
                       )}
                     >
-                      {PLOT_KIND_LABEL[node.kind as PlotKind] ?? node.kind}
+                      {t("plotKind." + (node.kind as string))}
                     </Badge>
                   }
                   title={`${i + 1}. ${node.title}`}
-                  subtitle={node.summary || "Tanpa ringkasan"}
+                  subtitle={node.summary || t("plot.noSummary")}
                 />
               ))}
             </div>
@@ -135,13 +133,13 @@ export function PlotEditor({ bookId }: { bookId: string }) {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus bagian ini?</AlertDialogTitle>
+            <AlertDialogTitle>{t("plot.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              “{selected?.title}” akan dihapus dari struktur plot.
+              {t("plot.deleteDesc", { title: selected?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-white hover:bg-destructive/90"
               onClick={async () => {
@@ -150,7 +148,7 @@ export function PlotEditor({ bookId }: { bookId: string }) {
                 }
               }}
             >
-              Hapus
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -168,6 +166,7 @@ function PlotDetail({
   onPatch: (data: Record<string, unknown>) => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const [title, setTitle] = React.useState(node.title);
   const [kind, setKind] = React.useState<PlotKind>(
     (node.kind as PlotKind) ?? "chapter"
@@ -213,7 +212,7 @@ function PlotDetail({
       <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-border/50">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Workflow className="h-3.5 w-3.5" />
-          Editor Plot
+          {t("plot.editorLabel")}
         </div>
         <div className="flex items-center gap-2">
           <SaveBadge status={status} />
@@ -223,7 +222,7 @@ function PlotDetail({
             onClick={onDelete}
             className="h-8 gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <Trash2 className="h-3.5 w-3.5" /> Hapus
+            <Trash2 className="h-3.5 w-3.5" /> {t("common.delete")}
           </Button>
         </div>
       </div>
@@ -232,13 +231,13 @@ function PlotDetail({
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Judul bab / adegan…"
+          placeholder={t("plot.titlePlaceholder")}
           className="text-xl font-semibold h-auto py-1 border-0 px-0 bg-transparent focus-visible:ring-0"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
           <div className="space-y-1.5">
-            <Label className="text-xs">Jenis</Label>
+            <Label className="text-xs">{t("plot.kind")}</Label>
             <Select value={kind} onValueChange={(v) => setKind(v as PlotKind)}>
               <SelectTrigger className="h-9">
                 <SelectValue />
@@ -246,7 +245,7 @@ function PlotDetail({
               <SelectContent>
                 {PLOT_KINDS.map((k) => (
                   <SelectItem key={k} value={k}>
-                    {PLOT_KIND_LABEL[k]}
+                    {t("plotKind." + k)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -256,26 +255,26 @@ function PlotDetail({
 
         <div className="space-y-1.5 mt-4">
           <Label htmlFor="summary" className="text-xs">
-            Ringkasan
+            {t("plot.summary")}
           </Label>
           <Input
             id="summary"
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
-            placeholder="Satu kalimat singkat tentang bagian ini."
+            placeholder={t("plot.summaryPlaceholder")}
             className="h-9"
           />
         </div>
 
         <div className="space-y-1.5 mt-4">
           <Label htmlFor="content" className="text-xs">
-            Naskah / Catatan
+            {t("plot.content")}
           </Label>
           <Textarea
             id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Tulis adegan, dialog, atau catatan plot di sini…"
+            placeholder={t("plot.contentPlaceholder")}
             rows={16}
             className="resize-none min-h-[280px] leading-relaxed"
           />
@@ -290,16 +289,17 @@ export function SaveBadge({
 }: {
   status: "idle" | "saving" | "saved";
 }) {
+  const t = useT();
   if (status === "saving")
     return (
       <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-        <Loader2 className="h-3 w-3 animate-spin" /> Menyimpan…
+        <Loader2 className="h-3 w-3 animate-spin" /> {t("common.saving")}
       </span>
     );
   if (status === "saved")
     return (
       <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
-        <Check className="h-3 w-3" /> Tersimpan
+        <Check className="h-3 w-3" /> {t("common.saved")}
       </span>
     );
   return null;
@@ -324,11 +324,12 @@ export function ListEmpty({
   onAdd: () => void;
   noun: string;
 }) {
+  const t = useT();
   return (
     <div className="p-6 text-center">
       <Plus className="h-6 w-6 mx-auto text-muted-foreground/60 mb-2" />
       <p className="text-xs text-muted-foreground">
-        {hasItems ? "Tidak ada yang cocok." : `Belum ada ${noun}.`}
+        {hasItems ? t("listEmpty.noMatch") : t("listEmpty.empty", { noun })}
       </p>
       <Button
         variant="ghost"
@@ -336,7 +337,7 @@ export function ListEmpty({
         onClick={onAdd}
         className="mt-2 h-7 text-xs gap-1"
       >
-        <Plus className="h-3.5 w-3.5" /> Tambah
+        <Plus className="h-3.5 w-3.5" /> {t("common.add")}
       </Button>
     </div>
   );

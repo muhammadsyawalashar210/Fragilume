@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useT } from "@/components/language-provider";
 
 /**
  * Generic CRUD hook for book sub-resources (plot / world / wiki).
@@ -14,6 +15,7 @@ export function useBookEntries<T extends { id: string }>(
   const [items, setItems] = React.useState<T[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
+  const t = useT();
 
   const endpoint = bookId ? endpointBase(bookId) : null;
 
@@ -26,19 +28,19 @@ export function useBookEntries<T extends { id: string }>(
     setLoading(true);
     try {
       const res = await fetch(endpoint, { cache: "no-store" });
-      if (!res.ok) throw new Error("Gagal memuat data.");
+      if (!res.ok) throw new Error(t("crud.errorLoadMsg"));
       const { nodes, entries } = await res.json();
       setItems((nodes ?? entries ?? []) as T[]);
     } catch (err) {
       toast({
-        title: "Gagal memuat data",
+        title: t("crud.errorLoad"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [endpoint, toast]);
+  }, [endpoint, toast, t]);
 
   React.useEffect(() => {
     load();
@@ -55,7 +57,7 @@ export function useBookEntries<T extends { id: string }>(
         });
         if (!res.ok) {
           const d = await res.json().catch(() => ({}));
-          throw new Error(d?.error || "Gagal membuat item.");
+          throw new Error(d?.error || t("crud.errorCreateMsg"));
         }
         const { node, entry } = await res.json();
         const created = (node ?? entry) as T;
@@ -63,14 +65,14 @@ export function useBookEntries<T extends { id: string }>(
         return created;
       } catch (err) {
         toast({
-          title: "Gagal membuat item",
+          title: t("crud.errorCreate"),
           description: err instanceof Error ? err.message : "",
           variant: "destructive",
         });
         return null;
       }
     },
-    [endpoint, toast]
+    [endpoint, toast, t]
   );
 
   const patch = React.useCallback(
@@ -84,7 +86,7 @@ export function useBookEntries<T extends { id: string }>(
         });
         if (!res.ok) {
           const d = await res.json().catch(() => ({}));
-          throw new Error(d?.error || "Gagal menyimpan.");
+          throw new Error(d?.error || t("crud.errorSaveMsg"));
         }
         const { node, entry } = await res.json();
         const updated = (node ?? entry) as T;
@@ -92,14 +94,14 @@ export function useBookEntries<T extends { id: string }>(
         return updated;
       } catch (err) {
         toast({
-          title: "Gagal menyimpan",
+          title: t("crud.errorSave"),
           description: err instanceof Error ? err.message : "",
           variant: "destructive",
         });
         return null;
       }
     },
-    [endpoint, toast]
+    [endpoint, toast, t]
   );
 
   const remove = React.useCallback(
@@ -107,19 +109,19 @@ export function useBookEntries<T extends { id: string }>(
       if (!endpoint) return false;
       try {
         const res = await fetch(`${endpoint}/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Gagal menghapus.");
+        if (!res.ok) throw new Error(t("crud.errorDeleteMsg"));
         setItems((prev) => prev.filter((it) => it.id !== id));
         return true;
       } catch (err) {
         toast({
-          title: "Gagal menghapus",
+          title: t("crud.errorDelete"),
           description: err instanceof Error ? err.message : "",
           variant: "destructive",
         });
         return false;
       }
     },
-    [endpoint, toast]
+    [endpoint, toast, t]
   );
 
   return { items, loading, reload: load, create, patch, remove };

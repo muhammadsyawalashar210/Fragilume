@@ -3,7 +3,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import {
-  User,
   Users,
   Plus,
   Pencil,
@@ -19,11 +18,10 @@ import {
   HardDriveDownload,
   FileJson,
   Palette,
+  Globe,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -54,11 +52,16 @@ import {
   ACCENT_SWATCH,
 } from "@/lib/accent-presets";
 import { useAccent } from "@/components/accent-provider";
+import {
+  useT,
+  useLanguage,
+} from "@/components/language-provider";
+import { LOCALES, type Locale } from "@/lib/i18n";
+import { FlagIcon } from "@/components/app/flag-icon";
 import { ProfileFormDialog } from "./dialogs/profile-form-dialog";
 
 export function SettingsView() {
-  const { toast } = useToast();
-
+  const t = useT();
   return (
     <div className="h-full overflow-y-auto fancy-scroll">
       <div className="max-w-3xl mx-auto px-5 sm:px-8 py-7 sm:py-9 space-y-6">
@@ -66,9 +69,10 @@ export function SettingsView() {
         <ProfilesSection />
         <ThemeSection />
         <AccentSection />
+        <LanguageSection />
         <BackupSection />
         <p className="text-center text-[11px] text-muted-foreground pt-2 pb-4">
-          {APP_FULL_NAME} · {APP_VERSION} — data tersimpan lokal di perangkat ini
+          {APP_FULL_NAME} · {APP_VERSION} — {t("app.dataLocal")}
         </p>
       </div>
     </div>
@@ -76,17 +80,18 @@ export function SettingsView() {
 }
 
 function SettingsHeader() {
+  const t = useT();
   return (
     <div>
       <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-brand mb-2">
         <SettingsIcon className="h-3 w-3" />
-        PENGATURAN
+        {t("settings.badge")}
       </div>
       <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-        Pengaturan
+        {t("settings.title")}
       </h1>
       <p className="text-sm text-muted-foreground mt-1">
-        Kelola profil penulis, tampilan, dan backup data studio Anda.
+        {t("settings.subtitle")}
       </p>
     </div>
   );
@@ -100,6 +105,7 @@ function ProfilesSection() {
   const setProfiles = useAppStore((s) => s.setProfiles);
   const activeProfileId = useAppStore((s) => s.activeProfileId);
   const setActiveProfileId = useAppStore((s) => s.setActiveProfileId);
+  const t = useT();
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editTarget, setEditTarget] = React.useState<ProfileT | null>(null);
@@ -109,17 +115,17 @@ function ProfilesSection() {
   const reload = React.useCallback(async () => {
     try {
       const res = await fetch("/api/profiles", { cache: "no-store" });
-      if (!res.ok) throw new Error("Gagal memuat profil.");
+      if (!res.ok) throw new Error(t("settings.profiles.errorLoadMsg"));
       const { profiles } = await res.json();
       setProfiles(profiles);
     } catch (err) {
       toast({
-        title: "Gagal memuat profil",
+        title: t("settings.profiles.errorLoadTitle"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
     }
-  }, [toast, setProfiles]);
+  }, [toast, setProfiles, t]);
 
   React.useEffect(() => {
     reload();
@@ -127,32 +133,32 @@ function ProfilesSection() {
 
   async function handleActivate(id: string) {
     setActiveProfileId(id);
-    toast({ title: "Profil aktif diganti" });
+    toast({ title: t("settings.profiles.activated") });
   }
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    const t = deleteTarget;
+    const target = deleteTarget;
     setDeleteTarget(null);
     setBusy(true);
     try {
-      const res = await fetch(`/api/profiles/${t.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Gagal menghapus profil.");
+      const res = await fetch(`/api/profiles/${target.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(t("settings.profiles.errorDeleteMsg"));
       await reload();
       // If we deleted the active profile, pick another.
-      if (activeProfileId === t.id) {
+      if (activeProfileId === target.id) {
         const remaining = await fetch("/api/profiles", { cache: "no-store" })
           .then((r) => r.json())
           .then((d) => d.profiles as ProfileT[]);
         setActiveProfileId(remaining[0]?.id ?? null);
       }
       toast({
-        title: "Profil dihapus",
-        description: `"${t.penName}" beserta semua bukunya telah dihapus.`,
+        title: t("settings.profiles.deleted"),
+        description: t("settings.profiles.deletedDesc", { name: target.penName }),
       });
     } catch (err) {
       toast({
-        title: "Gagal menghapus",
+        title: t("settings.profiles.errorDelete"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -170,9 +176,11 @@ function ProfilesSection() {
               <Users className="h-[18px] w-[18px]" />
             </div>
             <div>
-              <CardTitle className="text-base">Profil Penulis</CardTitle>
+              <CardTitle className="text-base">
+                {t("settings.profiles.title")}
+              </CardTitle>
               <CardDescription className="text-xs">
-                Tiap profil punya rak buku sendiri.
+                {t("settings.profiles.desc")}
               </CardDescription>
             </div>
           </div>
@@ -181,14 +189,14 @@ function ProfilesSection() {
             onClick={() => setCreateOpen(true)}
             className="h-8 gap-1 bg-brand text-brand-foreground hover:bg-brand/90"
           >
-            <Plus className="h-3.5 w-3.5" /> Tambah
+            <Plus className="h-3.5 w-3.5" /> {t("settings.profiles.add")}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-2.5">
         {profiles.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4 text-center">
-            Belum ada profil.
+            {t("settings.profiles.empty")}
           </p>
         ) : (
           profiles.map((p) => {
@@ -214,12 +222,15 @@ function ProfilesSection() {
                     </span>
                     {isActive ? (
                       <Badge className="text-[10px] h-5 bg-brand text-brand-foreground">
-                        Aktif
+                        {t("settings.profiles.active")}
                       </Badge>
                     ) : null}
                   </div>
                   <div className="text-[11px] text-muted-foreground line-clamp-1">
-                    {p.bio || "Tanpa bio"} · {p._count?.books ?? 0} buku
+                    {p.bio || t("settings.profiles.noBio")} ·{" "}
+                    {t("settings.profiles.bookCount", {
+                      count: p._count?.books ?? 0,
+                    })}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -230,7 +241,8 @@ function ProfilesSection() {
                       onClick={() => handleActivate(p.id)}
                       className="h-8 gap-1 text-xs"
                     >
-                      <Check className="h-3.5 w-3.5" /> Aktifkan
+                      <Check className="h-3.5 w-3.5" />{" "}
+                      {t("settings.profiles.activate")}
                     </Button>
                   )}
                   <Button
@@ -238,7 +250,7 @@ function ProfilesSection() {
                     size="icon"
                     className="h-8 w-8"
                     onClick={() => setEditTarget(p)}
-                    aria-label="Edit profil"
+                    aria-label={t("settings.profiles.editProfile")}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -247,7 +259,7 @@ function ProfilesSection() {
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => setDeleteTarget(p)}
-                    aria-label="Hapus profil"
+                    aria-label={t("settings.profiles.deleteProfile")}
                     disabled={busy}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -284,20 +296,22 @@ function ProfilesSection() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus profil ini?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("settings.profiles.deleteTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Profil <span className="font-medium text-foreground">“{deleteTarget?.penName}”</span>{" "}
-              beserta semua buku, plot, world building, dan wiki di dalamnya
-              akan dihapus permanen.
+              {t("settings.profiles.deleteDesc", {
+                name: deleteTarget?.penName ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-white hover:bg-destructive/90"
               onClick={handleDelete}
             >
-              Hapus
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -310,23 +324,18 @@ function ProfilesSection() {
 
 function ThemeSection() {
   const { theme, setTheme } = useTheme();
+  const t = useT();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
 
   const options: {
     value: "light" | "dark" | "system";
-    label: string;
+    labelKey: string;
     icon: typeof Sun;
-    desc: string;
   }[] = [
-    { value: "light", label: "Terang", icon: Sun, desc: "Mode terang" },
-    { value: "dark", label: "Gelap", icon: Moon, desc: "Mode gelap" },
-    {
-      value: "system",
-      label: "Sistem",
-      icon: Monitor,
-      desc: "Ikut sistem",
-    },
+    { value: "light", labelKey: "settings.theme.light", icon: Sun },
+    { value: "dark", labelKey: "settings.theme.dark", icon: Moon },
+    { value: "system", labelKey: "settings.theme.system", icon: Monitor },
   ];
 
   const current = mounted ? (theme as string) : "dark";
@@ -339,9 +348,11 @@ function ThemeSection() {
             <Sun className="h-[18px] w-[18px]" />
           </div>
           <div>
-            <CardTitle className="text-base">Tampilan</CardTitle>
+            <CardTitle className="text-base">
+              {t("settings.theme.title")}
+            </CardTitle>
             <CardDescription className="text-xs">
-              Pilih mode terang, gelap, atau ikut sistem.
+              {t("settings.theme.desc")}
             </CardDescription>
           </div>
         </div>
@@ -364,7 +375,7 @@ function ThemeSection() {
                 )}
               >
                 <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{opt.label}</span>
+                <span className="text-xs font-medium">{t(opt.labelKey)}</span>
               </button>
             );
           })}
@@ -379,6 +390,7 @@ function ThemeSection() {
 function AccentSection() {
   const { accent, setAccent } = useAccent();
   const { toast } = useToast();
+  const t = useT();
 
   return (
     <Card>
@@ -388,9 +400,11 @@ function AccentSection() {
             <Palette className="h-[18px] w-[18px]" />
           </div>
           <div>
-            <CardTitle className="text-base">Warna Aksen</CardTitle>
+            <CardTitle className="text-base">
+              {t("settings.accent.title")}
+            </CardTitle>
             <CardDescription className="text-xs">
-              Personalisasi warna utama studio Anda.
+              {t("settings.accent.desc")}
             </CardDescription>
           </div>
         </div>
@@ -406,8 +420,10 @@ function AccentSection() {
                 onClick={() => {
                   setAccent(key);
                   toast({
-                    title: "Aksen diperbarui",
-                    description: `Warna utama: ${ACCENT_LABEL[key]}`,
+                    title: t("settings.accent.updated"),
+                    description: t("settings.accent.updatedDesc", {
+                      name: ACCENT_LABEL[key],
+                    }),
                   });
                 }}
                 aria-label={ACCENT_LABEL[key]}
@@ -443,8 +459,83 @@ function AccentSection() {
           })}
         </div>
         <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
-          Aksen diterapkan ke seluruh studio: sidebar, tombol utama, indikator
-          aktif, dan fokus ring. Pilihan disimpan di perangkat ini.
+          {t("settings.accent.hint")}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ----------------- Language ----------------- */
+
+function LanguageSection() {
+  const { locale, setLocale } = useLanguage();
+  const { toast } = useToast();
+  const t = useT();
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-soft text-brand">
+            <Globe className="h-[18px] w-[18px]" />
+          </div>
+          <div>
+            <CardTitle className="text-base">
+              {t("settings.language.title")}
+            </CardTitle>
+            <CardDescription className="text-xs">
+              {t("settings.language.desc")}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {LOCALES.map((loc) => {
+            const active = locale === loc.code;
+            return (
+              <button
+                key={loc.code}
+                type="button"
+                onClick={() => {
+                  setLocale(loc.code as Locale);
+                  toast({
+                    title: t("settings.language.updated"),
+                    description: loc.label,
+                  });
+                }}
+                aria-pressed={active}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl border p-3 transition-all",
+                  active
+                    ? "border-brand bg-brand-soft"
+                    : "border-border/60 hover:bg-accent/50",
+                )}
+              >
+                <FlagIcon code={loc.flag} size={22} className="shrink-0" />
+                <div className="flex-1 min-w-0 text-left">
+                  <div
+                    className={cn(
+                      "text-sm font-medium",
+                      active ? "text-foreground" : "text-foreground/80",
+                    )}
+                  >
+                    {loc.label}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {loc.englishLabel}
+                  </div>
+                </div>
+                {active ? (
+                  <Check className="h-4 w-4 text-brand shrink-0" />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+          {t("settings.language.hint")}
         </p>
       </CardContent>
     </Card>
@@ -458,6 +549,7 @@ function BackupSection() {
   const setProfiles = useAppStore((s) => s.setProfiles);
   const setActiveProfileId = useAppStore((s) => s.setActiveProfileId);
   const setView = useAppStore((s) => s.setView);
+  const t = useT();
   const [exporting, setExporting] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
 
@@ -469,15 +561,15 @@ function BackupSection() {
         // silent
       } else if (result.ok) {
         toast({
-          title: "Backup berhasil disimpan",
+          title: t("settings.backup.exportOk"),
           description:
             result.method === "filesystem"
-              ? "File tersimpan ke folder Documents."
-              : "File diunduh ke folder unduhan.",
+              ? t("settings.backup.exportOkFs")
+              : t("settings.backup.exportOkDl"),
         });
       } else {
         toast({
-          title: "Gagal backup",
+          title: t("settings.backup.exportFail"),
           description: result.error,
           variant: "destructive",
         });
@@ -503,15 +595,18 @@ function BackupSection() {
           profiles.find((p: ProfileT) => p.id === stored) ?? profiles[0];
         setActiveProfileId(active?.id ?? null);
         toast({
-          title: "Backup berhasil dipulihkan",
+          title: t("settings.backup.importOk"),
           description: result.counts
-            ? `${result.counts.profiles} profil · ${result.counts.books} buku.`
+            ? t("settings.backup.importOkDesc", {
+                profiles: result.counts.profiles,
+                books: result.counts.books,
+              })
             : undefined,
         });
         setView("dashboard");
       } else {
         toast({
-          title: "Gagal restore",
+          title: t("settings.backup.importFail"),
           description: result.error,
           variant: "destructive",
         });
@@ -529,9 +624,11 @@ function BackupSection() {
             <HardDriveDownload className="h-[18px] w-[18px]" />
           </div>
           <div>
-            <CardTitle className="text-base">Backup &amp; Restore</CardTitle>
+            <CardTitle className="text-base">
+              {t("settings.backup.title")}
+            </CardTitle>
             <CardDescription className="text-xs">
-              Ekspor seluruh studio ke satu file, atau pulihkan dari backup.
+              {t("settings.backup.desc")}
             </CardDescription>
           </div>
         </div>
@@ -544,7 +641,9 @@ function BackupSection() {
             className="flex-1 h-10 gap-1.5 bg-brand text-brand-foreground hover:bg-brand/90"
           >
             <Download className="h-4 w-4" />
-            {exporting ? "Mengekspor…" : "Ekspor Backup"}
+            {exporting
+              ? t("settings.backup.exporting")
+              : t("settings.backup.export")}
           </Button>
           <Button
             onClick={handleImport}
@@ -553,31 +652,29 @@ function BackupSection() {
             className="flex-1 h-10 gap-1.5"
           >
             <Upload className="h-4 w-4" />
-            {importing ? "Memulihkan…" : "Impor / Restore"}
+            {importing
+              ? t("settings.backup.importing")
+              : t("settings.backup.import")}
           </Button>
         </div>
 
         <div className="rounded-lg border border-border/60 bg-muted/40 p-3 space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
             <Info className="h-3.5 w-3.5 text-brand" />
-            Tentang format &amp; penyimpanan
+            {t("settings.backup.aboutTitle")}
           </div>
           <ul className="text-[11px] text-muted-foreground space-y-1 leading-relaxed">
             <li className="flex items-start gap-1.5">
               <FileJson className="h-3 w-3 mt-0.5 shrink-0" />
-              Format file: <code className="text-foreground/70">.json</code> —
-              menyimpan semua profil, buku, plot, world building, &amp; wiki
-              secara utuh dan bisa dipulihkan.
+              {t("settings.backup.fmtJson")}
             </li>
             <li className="flex items-start gap-1.5">
               <HardDriveDownload className="h-3 w-3 mt-0.5 shrink-0" />
-              File disimpan ke folder <strong>Documents</strong> default
-              (Windows lokal/OneDrive, macOS, Linux). Pada browser tanpa File
-              System Access, file akan diunduh ke folder unduhan.
+              {t("settings.backup.fmtDocs")}
             </li>
             <li className="flex items-start gap-1.5">
               <Upload className="h-3 w-3 mt-0.5 shrink-0" />
-              Restore mengganti seluruh data saat ini dengan isi file backup.
+              {t("settings.backup.fmtRestore")}
             </li>
           </ul>
         </div>
