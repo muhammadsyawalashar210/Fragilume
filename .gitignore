@@ -69,3 +69,7 @@ android/
 ios/
 out/
 *.apk
+
+# ---- Owner added ----
+db/*.db
+.env
