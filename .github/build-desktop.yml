@@ -1,0 +1,57 @@
+name: Build Desktop Apps
+
+# Jalan otomatis tiap push ke main, atau manual lewat tab Actions ("Run workflow")
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: electron:build:win
+            artifact-name: fragilume-windows
+            artifact-path: electron-builder-out/*.exe
+          - os: ubuntu-latest
+            script: electron:build:linux
+            artifact-name: fragilume-linux
+            artifact-path: |
+              electron-builder-out/*.AppImage
+              electron-builder-out/*.deb
+          - os: macos-latest
+            script: electron:build:mac
+            artifact-name: fragilume-macos
+            artifact-path: |
+              electron-builder-out/*.dmg
+              electron-builder-out/*.zip
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Generate Prisma client
+        run: bunx prisma generate
+
+      - name: Build & package (${{ matrix.os }})
+        run: bun run ${{ matrix.script }}
+
+      - name: Upload hasil build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-path }}
+          if-no-files-found: warn
