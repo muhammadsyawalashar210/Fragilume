@@ -16,7 +16,7 @@
   <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-38bdf8" />
   <img alt="Prisma" src="https://img.shields.io/badge/Prisma-ORM-2d3748" />
   <img alt="SQLite" src="https://img.shields.io/badge/SQLite-local-003b57" />
-  <img alt="license" src="https://img.shields.io/badge/license-MIT-green" />
+  <img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue" />
 </p>
 
 ---
@@ -25,9 +25,9 @@
 
 ## Tentang / About
 
-**Fragilume** is a desktop-style web app for fiction writers (novel, komik, film, game). It gives you a single, private workspace to plan your **Plot** (act → chapter → scene → beat → note), build your **World** (location, culture, history, magic, tech, religion, geography, lore), and catalogue your **Wiki** (character, item, faction, location, event, concept) — all stored locally on your own machine, with no account and no cloud.
+Fragilume is a lightweight note-taking app built with the help of GLM-5.1, made for people who think in bursts of imagination and need a fast way to capture them — as well as for authors who want a simple place to record story ideas and concepts. It started as a playful side project, but I hope it turns out useful for serious writing too.
 
-Built as a portfolio project to demonstrate a full desktop-app-style SPA on the Next.js 16 App Router stack.
+It gives you a single, private workspace to plan your **Plot** (act → chapter → scene → beat → note), build your **World** (location, culture, history, magic, tech, religion, geography, lore), and catalogue your **Wiki** (character, item, faction, location, event, concept) — all stored locally on your own machine, with no account and no cloud.
 
 ## Fitur / Features
 
@@ -163,8 +163,10 @@ Please run `bun run lint` before submitting.
 
 ## License
 
-[MIT](./LICENSE) © Fragilume
+This project is licensed under the **GNU General Public License v3.0** — see [LICENSE](./LICENSE) for the full text.
+
+In short: you're free to use, study, and modify this code, but any distributed derivative work (including a modified or rebranded version) must also be released as source-available under the same GPLv3 license.
 
 ## Credits
 
-Built by **Fragilume** as a portfolio project. UI labels are in Bahasa Indonesia by design — terima kasih sudah mampir. ✨
+Built by **Muhammad Syawal Ashar (M. S. Ashar)** as a portfolio project, with the help of GLM-5.1. UI labels are in Bahasa Indonesia by design — terima kasih sudah mampir. ✨
